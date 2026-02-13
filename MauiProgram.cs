@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
+using Supabase;
 
 namespace Projeto_Jogo_Labirinto
 {

@@ -1,11 +1,15 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Networking;
+using Newtonsoft.Json;
 using Projeto_Jogo_Labirinto.Services;
 using Supabase.Realtime;
-using Newtonsoft.Json;
+using Supabase.Realtime.Interfaces;
 using Supabase.Realtime.PostgresChanges;
+using System.Text.Json;
 using System.Threading.Channels;
+using System.Threading.Tasks;
+using static Supabase.Realtime.PostgresChanges.PostgresChangesOptions;
 
 
 namespace Projeto_Jogo_Labirinto
@@ -14,6 +18,8 @@ namespace Projeto_Jogo_Labirinto
     {
         private readonly SupabaseService _supabase = new SupabaseService();
         private RealtimeChannel? _channel;
+        private RealtimeChannel? _salaChannel;
+        private readonly Task _supabaseInitializationTask;
         public MainPage()
         {
             InitializeComponent();
@@ -22,10 +28,10 @@ namespace Projeto_Jogo_Labirinto
             var screenHeight = DeviceDisplay.MainDisplayInfo.Height;
             var density = DeviceDisplay.MainDisplayInfo.Density;
 
-            inicializar_supabase();
+            InicializarSupabaseAsync();
         }
         string codigo = "";
-        private async void inicializar_supabase()
+        private async void InicializarSupabaseAsync()
         {
             await _supabase.InitializeAsync();
         }
@@ -95,7 +101,7 @@ namespace Projeto_Jogo_Labirinto
             }
         }
 
-        private async void btn_Voltar2(object sender, EventArgs e)
+        private void btn_Voltar2(object sender, EventArgs e)
         {
             PaginaPrincipal.IsVisible = true;
             InserirCodigoView.IsVisible = false;
@@ -119,10 +125,12 @@ namespace Projeto_Jogo_Labirinto
             else
             {
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                var respostaSala = await _supabase.Client.Rpc("criar_sala_privada", parametroSala);
+                await _supabase.Client.Rpc("criar_sala_privada", parametroSala);
 
                 var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
-                var respostaJogador = await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+
+                await EntrarModoEsperaAsync();
             }
         }
         private async void btnAgente_Click(object sender, EventArgs e)
@@ -142,11 +150,12 @@ namespace Projeto_Jogo_Labirinto
             else
             {
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                var respostaSala = await _supabase.Client.Rpc("criar_sala_privada", parametroSala);
+                await _supabase.Client.Rpc("criar_sala_privada", parametroSala);
 
                 var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
-                var respostaJogador = await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
 
+                await EntrarModoEsperaAsync();
             }
         }
 
@@ -187,8 +196,7 @@ namespace Projeto_Jogo_Labirinto
             }
         }
 
-
-        /*private async Task EntrarModoEsperaAsync()
+        private async Task EntrarModoEsperaAsync()
         {
             try
             {
@@ -247,11 +255,9 @@ namespace Projeto_Jogo_Labirinto
             }
         }
 
-        // Placeholder - você precisa implementar este método
-        private void IniciarJogo()
+        private async void IniciarJogo()
         {
-            // Navegar para a página do jogo
-            // Exemplo: Navigation.PushAsync(new GamePage());
-        }*/
+            await Navigation.PushAsync(new PageGuia(codigo));
+        }
     }
 }
