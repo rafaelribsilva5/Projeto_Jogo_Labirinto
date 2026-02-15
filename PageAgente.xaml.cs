@@ -1,6 +1,3 @@
-using CommunityToolkit.Maui.Views;
-using static Android.Provider.MediaStore;
-
 namespace Projeto_Jogo_Labirinto;
 
 public partial class PageAgente : ContentPage
@@ -10,10 +7,25 @@ public partial class PageAgente : ContentPage
 		InitializeComponent();
 	}
 
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+	}
 
-        video1.Source = MediaSource.FromFile("video1.mp4");
-    }
+	private void Video1_MediaEnded(object? sender, EventArgs e)
+	{
+		MostrarLabirinto();
+	}
+
+	private void Video1_MediaFailed(object? sender, CommunityToolkit.Maui.Core.MediaFailedEventArgs e)
+	{
+		System.Diagnostics.Debug.WriteLine($"[PageAgente] Vídeo falhou: {e?.ErrorMessage}");
+		MostrarLabirinto();
+	}
+
+	private void MostrarLabirinto()
+	{
+		VideoLayout.IsVisible = false;
+		LabirintoLayout.IsVisible = true;
+	}
 }

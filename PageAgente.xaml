@@ -3,13 +3,42 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Projeto_Jogo_Labirinto.PageAgente"
-             Title="PageAgente">
-    <VerticalStackLayout>
-        <toolkit:MediaElement
-    x:Name="video1"
-    Source="video1.mp4"
-    ShouldAutoPlay="True" 
-    ShouldShowPlaybackControls="True"
-    Aspect="AspectFill"/>
-    </VerticalStackLayout>
+             Title="Agente"
+             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False">
+
+    <Grid>
+        <!-- View do vídeo (fullscreen, autoplay). Quando terminar, escondemos e mostramos LabirintoLayout. -->
+        <VerticalStackLayout x:Name="VideoLayout"
+                             HorizontalOptions="Fill"
+                             VerticalOptions="Fill">
+            <toolkit:MediaElement x:Name="video1"
+                                 Source="embed://video1.mp4"
+                                 ShouldAutoPlay="True"
+                                 ShouldShowPlaybackControls="False"
+                                 ShouldKeepScreenOn="True"
+                                 Aspect="AspectFill"
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Fill"
+                                 MediaEnded="Video1_MediaEnded"
+                                 MediaFailed="Video1_MediaFailed" />
+        </VerticalStackLayout>
+
+        <!-- View do labirinto (visível após o vídeo acabar) -->
+        <VerticalStackLayout x:Name="LabirintoLayout"
+                             IsVisible="False"
+                             HorizontalOptions="Fill"
+                             VerticalOptions="Fill"
+                             BackgroundColor="#0D0D0D">
+            <Label x:Name="lblLabirinto"
+                   Text="LABIRINTO"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#8AF3FE"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   Margin="20" />
+            <!-- Aqui podes adicionar o conteúdo do labirinto (mapa, controles, etc.) -->
+        </VerticalStackLayout>
+    </Grid>
 </ContentPage>

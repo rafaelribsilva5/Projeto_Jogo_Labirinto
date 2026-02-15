@@ -1,10 +1,13 @@
-﻿Any raw assets you want to be deployed with your application can be placed in
+Any raw assets you want to be deployed with your application can be placed in
 this directory (and child directories). Deployment of the asset to your application
 is automatically handled by the following `MauiAsset` Build Action within your `.csproj`.
 
 	<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 
-These files will be deployed with your package and will be accessible using Essentials:
+These files will be deployed with your package and will be accessible using Essentials.
+
+Para o vídeo fullscreen nas páginas Guia/Agente: coloque o ficheiro "video1.mp4" nesta pasta
+(Resources\Raw). O MediaElement usa Source="embed://video1.mp4".
 
 	async Task LoadMauiAsset()
 	{

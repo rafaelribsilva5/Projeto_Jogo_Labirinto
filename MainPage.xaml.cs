@@ -2,6 +2,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Projeto_Jogo_Labirinto
 {
@@ -35,8 +36,9 @@ namespace Projeto_Jogo_Labirinto
             return _supabase.Client;
         }
 
-        private async void btn_Criar_Sala(object sender, EventArgs e)
+        private async void btn_Criar_Sala_Clicked(object sender, EventArgs e)
         {
+            btn_Criar_Sala.IsEnabled = false;
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
                 await DisplayAlert("Sem ligação", "É necessária ligação à internet para jogar online.", "OK");
@@ -71,6 +73,7 @@ namespace Projeto_Jogo_Labirinto
             CriarSalaView.Opacity = 0;
             PaginaPrincipal.Opacity = 1;
             clicouSair = true;
+            btn_Criar_Sala.IsEnabled = true;
 
             //await SairDoModoEspera();
 
@@ -83,6 +86,11 @@ namespace Projeto_Jogo_Labirinto
             lbl_Aguardar.Text = "";
             btn_Agente.IsEnabled = true;
             btn_Guia.IsEnabled = true;
+
+            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client!.Rpc("eliminar_ssala", parametroSala);
+            var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }};
+            await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
         }
 
         private async void btn_Voltar2(object sender, EventArgs e)
@@ -92,6 +100,24 @@ namespace Projeto_Jogo_Labirinto
             InserirCodigoView.IsVisible = false;
             InserirCodigoView.Opacity = 0;
             PaginaPrincipal.Opacity = 1;
+        }
+        private async void btn_Voltar3(object sender, EventArgs e)
+        {
+            //await SairDoModoEspera();
+            PaginaPrincipal.IsVisible = true;
+            ProcurarSalaView.IsVisible = false;
+            ProcurarSalaView.Opacity = 0;
+            PaginaPrincipal.Opacity = 1;
+            clicouSair = true;
+            lbl_Aguardar2.Text = "";
+            lbl_funcaoProcurar.Text = "";
+            btn_Procurar_Sala.IsEnabled = true;
+
+            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client!.Rpc("eliminar_ssala", parametroSala);
+            var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
+
         }
 
         private async void btnGuia_Click(object sender, EventArgs e)
@@ -174,6 +200,7 @@ namespace Projeto_Jogo_Labirinto
                 if (resposta.Content == "true")
                 {
                     comecar = true;
+                    await Task.Delay(1800);
                     IniciarJogo();
                     clicouSair = false;
                     break;
@@ -263,12 +290,42 @@ namespace Projeto_Jogo_Labirinto
                 Navigation.PushAsync(new PageAgente(codigo));
         }
 
-        private void btn_Procurar_Sala(object sender, EventArgs e)
+        private async void btn_Procurar_Sala_Clicked(object sender, EventArgs e)
         {
             PaginaPrincipal.IsVisible = false;
             ProcurarSalaView.IsVisible = true;
             ProcurarSalaView.Opacity = 1;
             PaginaPrincipal.Opacity = 0;
+            btn_Procurar_Sala.IsEnabled = false;
+
+            var resposta = await _supabase.Client!.Rpc("entrar_sala_publica", null);
+
+            var json = JsonDocument.Parse(resposta.Content);
+            var root = json.RootElement;
+
+            string codigo = root.GetProperty("codigo").GetString()!;
+            bool criado = root.GetProperty("criado").GetBoolean();
+
+            codigo = codigo.Trim('"');
+
+            if (criado == true)
+            {
+                lbl_funcaoProcurar.Text = "Guia";
+                minhaFuncao = "Guia";
+                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                await Task.Delay(2000);
+                IniciarJogo();
+            }
+            if (criado == false)
+            {
+                lbl_funcaoProcurar.Text = "Agente";
+                minhaFuncao = "Agente";
+                lbl_Aguardar2.Text = "A aguardar pelo guia...";
+                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                comecarJogo();
+            }
         }
     }
 }

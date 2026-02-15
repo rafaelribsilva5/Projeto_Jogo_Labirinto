@@ -22,7 +22,7 @@
                     ColumnDefinitions="*, *"
                     Padding="2"
                     Grid.Column="1">
-                        <ImageButton
+                        <ImageButton x:Name="btn_Procurar_Sala"
                             Source="vniejuvodjewivu.png"
                             Grid.Column="1"
                             HorizontalOptions="Center"
@@ -32,13 +32,13 @@
                             CornerRadius="16"
                             BorderWidth="2"
                             BorderColor="#8AF3FE"
-                            Aspect="AspectFit"
-                            Clicked="btn_Procurar_Sala">
+                            Clicked="btn_Procurar_Sala_Clicked">
                         </ImageButton>
                         <Grid Grid.Column="0"
                            Padding="2"
                            RowDefinitions ="*, *">
-                            <ImageButton Source="fundo_criar_sala.png"
+                            <ImageButton x:Name="btn_Criar_Sala"
+                                Source="fundo_criar_sala.png"
                                    HorizontalOptions="Fill"
                                    Margin="16,16,2,0"
                                     Grid.Row="0"
@@ -46,7 +46,7 @@
                                    CornerRadius="16"
                                    BorderWidth="2"
                                    BorderColor="#8AF3FE"
-                                   Clicked="btn_Criar_Sala">
+                                   Clicked="btn_Criar_Sala_Clicked">
                             </ImageButton>
                             <ImageButton Source="fundo_inserir_codigo.png"
                                     HorizontalOptions="Fill"
@@ -93,7 +93,7 @@
                             CornerRadius="16"
                            BorderWidth="2"
                            BorderColor="#8AF3FE"
-                           Clicked="btn_Criar_Sala">
+                           Clicked="btn_Criar_Sala_Clicked">
                     </ImageButton>
                     <Image Source="descricao.png"
                                  Aspect="AspectFit"
@@ -200,7 +200,7 @@
                                      Grid.Row="1"
                                      CornerRadius="16"
                                      BorderColor="#8AF3FE"
-                                     Margin="4, 4, 0, 4"
+                                     Margin="4, 4, 0, 16"
                                      HorizontalOptions="Fill"
                                      Clicked="btn_Voltar"/>
 
@@ -316,7 +316,7 @@
                              HeightRequest="50"
                              CornerRadius="16"
                              BorderColor="#8AF3FE"
-                             Margin="4, 4, 0, 4"
+                             Margin="4, 4, 0, 16"
                              HorizontalOptions="Fill"
                              Clicked="btn_Voltar2"/>
                         </Grid>
@@ -358,26 +358,62 @@
                         <Grid Grid.Column="0"
                    Padding="2"
                    RowDefinitions ="*, *">
-                            <ImageButton Source="fundo_criar_sala.png"
-                           HorizontalOptions="Fill"
-                           Margin="16,16,2,0"
-                            Grid.Row="0"
-                           HeightRequest="150"
-                           CornerRadius="16"
-                           BorderWidth="2"
-                           BorderColor="#8AF3FE"
-                           Clicked="btn_Criar_Sala">
-                            </ImageButton>
-                            <ImageButton Source="fundo_inserir_codigo.png"
-                            HorizontalOptions="Fill"
-                            Margin="16,0,2,16"
-                            CornerRadius="16"
-                            HeightRequest="150"
-                            Grid.Row="1"
-                            BorderWidth="2"
-                            BorderColor="#8AF3FE"
-                            Clicked="btn_Inserir_Codigo">
-                            </ImageButton>
+                            <VerticalStackLayout Grid.Row="0"
+                 Grid.Column="0"
+                 Padding="2">
+                                <Label Text="QUEM SOU?"
+       HorizontalTextAlignment="Center"
+       FontFamily="Archive"
+       FontSize="24"
+       FontAttributes="Bold"
+       VerticalTextAlignment="Center"
+       TextColor="White"
+       Margin="0,10,0,4"
+       HorizontalOptions="Fill"
+       VerticalOptions="Start"/>
+                                <Label x:Name="lbl_funcaoProcurar"
+         Text=""
+         HorizontalTextAlignment="Center"
+         FontFamily="Archive"
+         FontSize="30"
+         FontAttributes="Bold"
+         VerticalTextAlignment="Center"
+         TextColor="#8AF3FE"
+         Margin="0,4,0,4"
+         HorizontalOptions="Fill"
+         VerticalOptions="Fill"/>
+                            </VerticalStackLayout>
+                            <Label   x:Name="lbl_Aguardar2"
+Text=""
+Grid.Column="0"
+ Grid.Row="1"
+ HorizontalTextAlignment="End"
+ FontAttributes="Italic"
+ FontFamily="Archive"
+ FontSize="12"
+ VerticalTextAlignment="Start"
+TextColor="White"
+Margin="8,0,8,70"
+HorizontalOptions="End"
+VerticalOptions="End"/>
+                            <Grid Grid.Column="0"
+      Padding="2"
+      ColumnDefinitions="2*, *"
+      RowDefinitions="3*, *"
+      Grid.Row="1">
+                                <ImageButton Source="retroceder.png"
+     Aspect="AspectFit"
+     BackgroundColor="Transparent"
+     BorderWidth="2"
+     Grid.Column="1"
+     Grid.Row="1"
+     HeightRequest="50" 
+     CornerRadius="16"
+     BorderColor="#8AF3FE"
+     Margin="4, 4, 0, 16"
+     HorizontalOptions="Fill"
+     Clicked="btn_Voltar3"/>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
