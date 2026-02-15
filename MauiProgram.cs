@@ -1,6 +1,6 @@
-﻿using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
-using Supabase;
+using CommunityToolkit.Maui;
 
 namespace Projeto_Jogo_Labirinto
 {
@@ -11,6 +11,7 @@ namespace Projeto_Jogo_Labirinto
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkitMediaElement()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

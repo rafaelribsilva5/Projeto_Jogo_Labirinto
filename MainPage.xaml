@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Projeto_Jogo_Labirinto.MainPage"
@@ -6,8 +6,9 @@
              Shell.NavBarIsVisible="False"
              NavigationPage.HasNavigationBar="False">
 
-    <Grid>
-        <VerticalStackLayout x:Name="PaginaPrincipal"
+    <ScrollView>
+        <Grid>
+            <VerticalStackLayout x:Name="PaginaPrincipal"
                              IsVisible="True"
                              Opacity="1">
             <Grid 
@@ -17,49 +18,49 @@
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        Margin="16,16,16,16"/>
-                <Grid
+                    <Grid
                     ColumnDefinitions="*, *"
                     Padding="2"
                     Grid.Column="1">
-                    <ImageButton Source="vniejuvodjewivu.png"
-                            Aspect="AspectFit"
+                        <ImageButton
+                            Source="vniejuvodjewivu.png"
                             Grid.Column="1"
-                            HorizontalOptions="Fill"
-                            VerticalOptions="Fill"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            HeightRequest="310"
                             Margin="2,18,16,18"
                             CornerRadius="16"
                             BorderWidth="2"
-                            BorderColor="#8AF3FE">
-                    </ImageButton>
-                     <Grid Grid.Column="0"
+                            BorderColor="#8AF3FE"
+                            Aspect="AspectFit"
+                            Clicked="btn_Procurar_Sala">
+                        </ImageButton>
+                        <Grid Grid.Column="0"
                            Padding="2"
                            RowDefinitions ="*, *">
-                           <ImageButton Source="fundo_criar_sala.png"
-                                   Aspect="AspectFit"
+                            <ImageButton Source="fundo_criar_sala.png"
                                    HorizontalOptions="Fill"
-                                   VerticalOptions="Fill"
-                                   Margin="16,16,2,2"
+                                   Margin="16,16,2,0"
                                     Grid.Row="0"
+                                   HeightRequest="150"
                                    CornerRadius="16"
                                    BorderWidth="2"
                                    BorderColor="#8AF3FE"
                                    Clicked="btn_Criar_Sala">
                             </ImageButton>
-                        <ImageButton Source="fundo_inserir_codigo.png"
-                                    Aspect="AspectFit"
+                            <ImageButton Source="fundo_inserir_codigo.png"
                                     HorizontalOptions="Fill"
-                                    VerticalOptions="Fill"
-                                    Margin="16,2,2,16"
+                                    Margin="16,0,2,16"
                                     CornerRadius="16"
+                                    HeightRequest="150"
                                     Grid.Row="1"
                                     BorderWidth="2"
                                     BorderColor="#8AF3FE"
                                     Clicked="btn_Inserir_Codigo">
                             </ImageButton>
-                        </Grid>      
+                        </Grid>
+                    </Grid>
                 </Grid>
-                    
-            </Grid>
         </VerticalStackLayout>
 
         
@@ -86,6 +87,7 @@
                            HorizontalOptions="Fill"
                            VerticalOptions="Fill"
                            Margin="16,16,2,2"
+                           HeightRequest="150"
                             Grid.Row="0"
                             Grid.Column="0"
                             CornerRadius="16"
@@ -193,6 +195,7 @@
                                      Aspect="AspectFit"
                                      BackgroundColor="Transparent"
                                      BorderWidth="2"
+                                     HeightRequest="50"
                                      Grid.Column="1"
                                      Grid.Row="1"
                                      CornerRadius="16"
@@ -207,30 +210,29 @@
             </Grid>
         </VerticalStackLayout>
 
-        
-        
-        
-        
-        
-        <VerticalStackLayout x:Name="InserirCodigoView"
+
+
+
+
+
+            <VerticalStackLayout x:Name="InserirCodigoView"
                      IsVisible="False"
                      Opacity="0">
-            <Grid 
+                <Grid 
         ColumnDefinitions="*, *">
-                <Image Source="logo_completo.png"
+                    <Image Source="logo_completo.png"
                Grid.Column="0"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                Margin="16,16,16,16"/>
-                <Grid
+                    <Grid
             ColumnDefinitions="*, *"
                     RowDefinitions ="*, *"
             Padding="2"
             Grid.Column="1">
-                    <ImageButton Source="fundo_inserir_codigo.png"
+                        <ImageButton Source="fundo_inserir_codigo.png"
                             Aspect="AspectFit"
-                            HorizontalOptions="Fill"
-                            VerticalOptions="Fill"
+                            HeightRequest="150"
                             Margin="16,2,2,16"
                             CornerRadius="16"
                             Grid.Row="1"
@@ -244,10 +246,10 @@
                                VerticalOptions="Center"
                                Grid.Row="0"
                                Grid.Column="1"/>
-                    <VerticalStackLayout Grid.Row="0"
+                        <VerticalStackLayout Grid.Row="0"
                                          Grid.Column="0"
                                          Padding="2">
-                        <Entry x:Name="txt_Codigo"
+                            <Entry x:Name="txt_Codigo"
                                Placeholder="Insira o código"
                                PlaceholderColor="#8AF3FE"
                                FontFamily="Archive"
@@ -258,7 +260,7 @@
                                BackgroundColor="Transparent"
                                Grid.Column="0"
                                Grid.Row="0"/>
-                        <Button x:Name="btn_Entrar"
+                            <Button x:Name="btn_Entrar"
                                 Text="Ativar Protocolo"
                                 FontFamily="Archive"
                                 FontSize="16"
@@ -274,11 +276,11 @@
                                 HorizontalOptions="Fill"
                                 VerticalOptions="Fill"
                                 Clicked="btn_Iniciar_Protocolo"/>
-                    </VerticalStackLayout>
-                    <VerticalStackLayout Grid.Row="1"
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Row="1"
                                          Grid.Column="1"
                                          Padding="2">
-                        <Label Text="QUEM SOU?"
+                            <Label Text="QUEM SOU?"
                                HorizontalTextAlignment="Center"
                                FontFamily="Archive"
                                FontSize="24"
@@ -288,7 +290,7 @@
                                Margin="0,10,0,4"
                                HorizontalOptions="Fill"
                                VerticalOptions="Start"/>
-                        <Label x:Name="lbl_funcao"
+                            <Label x:Name="lbl_funcao"
                                  Text=""
                                  HorizontalTextAlignment="Center"
                                  FontFamily="Archive"
@@ -299,28 +301,89 @@
                                  Margin="0,4,0,4"
                                  HorizontalOptions="Fill"
                                  VerticalOptions="Fill"/>
-                    </VerticalStackLayout> 
+                        </VerticalStackLayout>
                         <Grid Grid.Column="1"
                               Padding="2"
                               ColumnDefinitions="2*, *"
                               RowDefinitions="3*, *"
                               Grid.Row="1">
-                        <ImageButton Source="retroceder.png"
+                            <ImageButton Source="retroceder.png"
                              Aspect="AspectFit"
                              BackgroundColor="Transparent"
                              BorderWidth="2"
                              Grid.Column="1"
                              Grid.Row="1"
+                             HeightRequest="50"
                              CornerRadius="16"
                              BorderColor="#8AF3FE"
                              Margin="4, 4, 0, 4"
                              HorizontalOptions="Fill"
                              Clicked="btn_Voltar2"/>
+                        </Grid>
+                    </Grid>
+
+                </Grid>
+            </VerticalStackLayout>
+
+
+
+
+
+            <VerticalStackLayout x:Name="ProcurarSalaView"
+                     IsVisible="False"
+                     Opacity="0">
+                <Grid 
+        ColumnDefinitions="*, *">
+                    <Image Source="logo_completo.png"
+               Grid.Column="0"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               Margin="16,16,16,16"/>
+                    <Grid
+            ColumnDefinitions="*, *"
+            Padding="2"
+            Grid.Column="1">
+                        <ImageButton
+                    Source="vniejuvodjewivu.png"
+                    Grid.Column="1"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    HeightRequest="310"
+                    Margin="2,18,16,18"
+                    CornerRadius="16"
+                    BorderWidth="2"
+                    BorderColor="#8AF3FE"
+                    Aspect="AspectFit">
+                        </ImageButton>
+                        <Grid Grid.Column="0"
+                   Padding="2"
+                   RowDefinitions ="*, *">
+                            <ImageButton Source="fundo_criar_sala.png"
+                           HorizontalOptions="Fill"
+                           Margin="16,16,2,0"
+                            Grid.Row="0"
+                           HeightRequest="150"
+                           CornerRadius="16"
+                           BorderWidth="2"
+                           BorderColor="#8AF3FE"
+                           Clicked="btn_Criar_Sala">
+                            </ImageButton>
+                            <ImageButton Source="fundo_inserir_codigo.png"
+                            HorizontalOptions="Fill"
+                            Margin="16,0,2,16"
+                            CornerRadius="16"
+                            HeightRequest="150"
+                            Grid.Row="1"
+                            BorderWidth="2"
+                            BorderColor="#8AF3FE"
+                            Clicked="btn_Inserir_Codigo">
+                            </ImageButton>
+                        </Grid>
                     </Grid>
                 </Grid>
+            </VerticalStackLayout>
+        </Grid>
+    </ScrollView>
 
-            </Grid>
-        </VerticalStackLayout>
-    </Grid>
 
 </ContentPage>

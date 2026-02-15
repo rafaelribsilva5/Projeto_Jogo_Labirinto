@@ -1,11 +1,11 @@
-﻿using Supabase;
+using Supabase;
 using Microsoft.Maui.Controls;
 
 namespace Projeto_Jogo_Labirinto.Services
 {
     public class SupabaseService
     {
-        public Client Client { get; private set; }
+        public Client? Client { get; private set; }
 
         public async Task InitializeAsync()
         {

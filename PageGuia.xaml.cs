@@ -1,3 +1,6 @@
+
+using CommunityToolkit.Maui.Views;
+
 namespace Projeto_Jogo_Labirinto;
 
 public partial class PageGuia : ContentPage
@@ -6,4 +9,10 @@ public partial class PageGuia : ContentPage
 	{
 		InitializeComponent();
 	}
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        video1.Source = MediaSource.FromFile("video1.mp4");
+    }
 }

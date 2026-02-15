@@ -3,6 +3,14 @@
     "Windows Machine": {
       "commandName": "Project",
       "nativeDebugging": false
+    },
+    "Perfil 1": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    },
+    "Perfil 2": {
+      "commandName": "Project",
+      "nativeDebugging": false
     }
   }
 }
