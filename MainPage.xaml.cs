@@ -88,7 +88,7 @@ namespace Projeto_Jogo_Labirinto
             btn_Guia.IsEnabled = true;
 
             var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_ssala", parametroSala);
+            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
             var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }};
             await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
         }
@@ -114,7 +114,7 @@ namespace Projeto_Jogo_Labirinto
             btn_Procurar_Sala.IsEnabled = true;
 
             var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_ssala", parametroSala);
+            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
             var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo } };
             await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
 
@@ -298,33 +298,40 @@ namespace Projeto_Jogo_Labirinto
             PaginaPrincipal.Opacity = 0;
             btn_Procurar_Sala.IsEnabled = false;
 
-            var resposta = await _supabase.Client!.Rpc("entrar_sala_publica", null);
-
-            var json = JsonDocument.Parse(resposta.Content);
-            var root = json.RootElement;
-
-            string codigo = root.GetProperty("codigo").GetString()!;
-            bool criado = root.GetProperty("criado").GetBoolean();
-
-            codigo = codigo.Trim('"');
-
-            if (criado == true)
+            try
             {
-                lbl_funcaoProcurar.Text = "Guia";
-                minhaFuncao = "Guia";
-                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
-                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
-                await Task.Delay(2000);
-                IniciarJogo();
+                var resposta = await _supabase.Client!.Rpc("entrar_sala_publica", null);
+
+                var json = JsonDocument.Parse(resposta.Content);
+                var root = json.RootElement;
+
+                codigo = root.GetProperty("codigo").GetString()!;
+                bool criado = root.GetProperty("criado").GetBoolean();
+
+                codigo = codigo.Trim('"');
+
+                if (criado == true)
+                {
+                    lbl_funcaoProcurar.Text = "Guia";
+                    minhaFuncao = "Guia";
+                    var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
+                    await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                    await Task.Delay(2000);
+                    IniciarJogo();
+                }
+                if (criado == false)
+                {
+                    lbl_funcaoProcurar.Text = "Agente";
+                    minhaFuncao = "Agente";
+                    lbl_Aguardar2.Text = "A aguardar pelo guia...";
+                    var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
+                    await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+                    comecarJogo();
+                }
             }
-            if (criado == false)
+            catch (Exception ex)
             {
-                lbl_funcaoProcurar.Text = "Agente";
-                minhaFuncao = "Agente";
-                lbl_Aguardar2.Text = "A aguardar pelo guia...";
-                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
-                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
-                comecarJogo();
+                DisplayAlert("Erro", "Não foi possível procurar protocolo. Tente novamente.", "Ok");
             }
         }
     }

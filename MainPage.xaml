@@ -368,7 +368,7 @@
        FontAttributes="Bold"
        VerticalTextAlignment="Center"
        TextColor="White"
-       Margin="0,10,0,4"
+       Margin="0,30,0,4"
        HorizontalOptions="Fill"
        VerticalOptions="Start"/>
                                 <Label x:Name="lbl_funcaoProcurar"
