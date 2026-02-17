@@ -10,9 +10,8 @@ namespace Projeto_Jogo_Labirinto
     {
         private readonly SupabaseService _supabase = new SupabaseService();
         private Task _supabaseInitializationTask = null!;
-        private string codigo = "";
+        string codigo = "";
 
-        private readonly SalaRealtimeService _salaRealtimeService;
         private string minhaFuncao = "";
         bool clicouSair = false;
 
@@ -20,7 +19,6 @@ namespace Projeto_Jogo_Labirinto
         {
             InitializeComponent();
             _supabaseInitializationTask = InicializarSupabaseAsync();
-            _salaRealtimeService = new SalaRealtimeService(GarantirSupabaseProntoAsync);
         }
 
         private async Task InicializarSupabaseAsync()
@@ -28,13 +26,6 @@ namespace Projeto_Jogo_Labirinto
             await _supabase.InitializeAsync();
         }
 
-        private async Task<Supabase.Client?> GarantirSupabaseProntoAsync()
-        {
-            await _supabaseInitializationTask;
-            if (_supabase.Client == null)
-                throw new InvalidOperationException("Supabase não foi inicializado corretamente.");
-            return _supabase.Client;
-        }
 
         private async void btn_Criar_Sala_Clicked(object sender, EventArgs e)
         {
@@ -46,7 +37,6 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
-                await GarantirSupabaseProntoAsync();
                 var response = await _supabase.Client!.Rpc("gerar_sala_codigo", null);
                 codigo = response.Content?.Trim('"') ?? "";
                 lbl_Codigo.Text = codigo;
@@ -137,7 +127,6 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
-                await GarantirSupabaseProntoAsync();
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
                 var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
@@ -171,7 +160,6 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
-                await GarantirSupabaseProntoAsync();
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
                 var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
@@ -247,7 +235,6 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
-                await GarantirSupabaseProntoAsync();
                 var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 var resposta = await _supabase.Client!.Rpc("entrar_em_sala", parametro);
 
@@ -314,7 +301,7 @@ namespace Projeto_Jogo_Labirinto
                 {
                     lbl_funcaoProcurar.Text = "Guia";
                     minhaFuncao = "Guia";
-                    var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
+                    var parametroJogador = new Dictionary<string, object?> {{ "p_codigo", codigo }, { "p_funcao", "Guia" }};
                     await _supabase.Client.Rpc("criar_jogador", parametroJogador);
                     await Task.Delay(2000);
                     IniciarJogo();

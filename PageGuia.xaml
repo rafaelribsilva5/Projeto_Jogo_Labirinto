@@ -3,13 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Projeto_Jogo_Labirinto.PageGuia"
-             Title="Guia"
+             BackgroundImageSource="labirinto.png"
              NavigationPage.HasNavigationBar="False"
              Shell.NavBarIsVisible="False">
 
     <Grid>
-        <!-- View do vídeo (fullscreen, autoplay). Quando terminar, escondemos e mostramos LabirintoLayout. -->
-        <VerticalStackLayout x:Name="VideoLayout"
+        <Grid x:Name="VideoView"
                              HorizontalOptions="Fill"
                              VerticalOptions="Fill">
             <toolkit:MediaElement x:Name="video1"
@@ -20,25 +19,22 @@
                                  Aspect="AspectFill"
                                  HorizontalOptions="Fill"
                                  VerticalOptions="Fill"
-                                 MediaEnded="Video1_MediaEnded"
-                                 MediaFailed="Video1_MediaFailed" />
-        </VerticalStackLayout>
+                                 MediaEnded="Video1_MediaEnded"/>
+        </Grid>
 
-        <!-- View do labirinto (visível após o vídeo acabar) -->
-        <VerticalStackLayout x:Name="LabirintoLayout"
+
+        
+        
+        <Grid x:Name="LabirintoView"
                              IsVisible="False"
                              HorizontalOptions="Fill"
-                             VerticalOptions="Fill"
-                             BackgroundColor="#0D0D0D">
-            <Label x:Name="lblLabirinto"
-                   Text="LABIRINTO"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="#8AF3FE"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center"
-                   Margin="20" />
-            <!-- Aqui podes adicionar o conteúdo do labirinto (mapa, controles, etc.) -->
-        </VerticalStackLayout>
+                             VerticalOptions="Fill">
+            <Grid x:Name="MapaGrid"
+              RowSpacing="0"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill"
+              ColumnSpacing="0">
+            </Grid>
+        </Grid>
     </Grid>
 </ContentPage>

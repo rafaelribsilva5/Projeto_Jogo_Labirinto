@@ -3,13 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Projeto_Jogo_Labirinto.PageAgente"
-             Title="Agente"
              NavigationPage.HasNavigationBar="False"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             BackgroundImageSource="fundo_mainpage_escuro2.png">
 
     <Grid>
-        <!-- View do vídeo (fullscreen, autoplay). Quando terminar, escondemos e mostramos LabirintoLayout. -->
-        <VerticalStackLayout x:Name="VideoLayout"
+        <VerticalStackLayout x:Name="VideoView"
+                             Opacity="1"
                              HorizontalOptions="Fill"
                              VerticalOptions="Fill">
             <toolkit:MediaElement x:Name="video1"
@@ -24,21 +24,61 @@
                                  MediaFailed="Video1_MediaFailed" />
         </VerticalStackLayout>
 
-        <!-- View do labirinto (visível após o vídeo acabar) -->
-        <VerticalStackLayout x:Name="LabirintoLayout"
+        <Button x:Name="Mensagem"
+                    IsVisible="False"
+                    IsEnabled="False"
+           TextColor="White"
+           FontSize="Medium"
+           HorizontalOptions="Center"
+           VerticalOptions="Center"
+           Padding="10"
+           Opacity="0"
+           Text="Infelizmente não dá para passar paredes!"
+           CornerRadius="16"
+BorderWidth="2"
+BorderColor="#8AF3FE"/>
+
+
+        <VerticalStackLayout x:Name="LabirintoView"
+                             Opacity="0"
                              IsVisible="False"
                              HorizontalOptions="Fill"
-                             VerticalOptions="Fill"
-                             BackgroundColor="#0D0D0D">
-            <Label x:Name="lblLabirinto"
-                   Text="LABIRINTO"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="#8AF3FE"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center"
-                   Margin="20" />
-            <!-- Aqui podes adicionar o conteúdo do labirinto (mapa, controles, etc.) -->
+                             VerticalOptions="Fill">
+            <Grid ColumnDefinitions="*,*,*"
+                  ColumnSpacing="30">
+                <ImageButton Source="seta_esquerda.png"
+                             HorizontalOptions="Center"
+                             Grid.Column="0"
+                             WidthRequest="120"
+                             VerticalOptions="Center"
+                             Clicked="BtnEsquerda_Clicked" 
+                             BackgroundColor="Transparent"/>
+                <ImageButton Source="seta_direita.png"
+             HorizontalOptions="Center"
+             Grid.Column="2"
+             WidthRequest="120"
+             VerticalOptions="Center"
+             Clicked="BtnDireita_Clicked" 
+             BackgroundColor="Transparent"/>
+                <VerticalStackLayout Grid.Column="1"
+                                     HorizontalOptions="Fill"
+                                     VerticalOptions="Fill">
+                    <ImageButton Source="seta_cima.png"
+HorizontalOptions="Center"
+Grid.Column="2"
+HeightRequest="120"
+VerticalOptions="Center"
+Margin="0, 0, 0, 20"
+Clicked="BtnCima_Clicked" 
+BackgroundColor="Transparent"/>
+                    <ImageButton Source="seta_baixo.png"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 HeightRequest="120"
+                                 Clicked="BtnBaixo_Clicked"
+                                 BackgroundColor="Transparent"/>
+                </VerticalStackLayout>
+            </Grid>
         </VerticalStackLayout>
     </Grid>
 </ContentPage>
