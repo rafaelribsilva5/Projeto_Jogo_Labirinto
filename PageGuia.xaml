@@ -36,5 +36,98 @@
               ColumnSpacing="0">
             </Grid>
         </Grid>
+
+
+
+        <Grid x:Name="ControlosInvertidos"
+      BackgroundColor="Transparent"
+      IsVisible="False">
+
+            <Grid 
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        WidthRequest="300"/>
+
+            <Border
+    BackgroundColor="#80000000"
+    Stroke="#8AF3FE"
+    StrokeThickness="2"
+    StrokeShape="RoundRectangle 25"
+    Padding="20">
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="🔴 CONTROLOS INVERTIDOS!"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Label Text="↑ agora é ↓
+↓ agora é ↑
+← agora é →
+→ agora é ←"
+                           FontSize="16"
+                           TextColor="White"
+                           HorizontalTextAlignment="Center"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+
+            <Button Text="OK"
+                Margin="0,15,0,0"
+                BackgroundColor="Transparent"
+                TextColor="White"
+                CornerRadius="16"
+                BorderColor="#8AF3FE"
+                BorderWidth="2"
+                Clicked="btn_fechar"/>
+        </Grid>
+
+
+
+
+        <Grid x:Name="ControlosCorretos"
+      BackgroundColor="Transparent"
+      IsVisible="False">
+
+            <Grid
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        WidthRequest="300"/>
+
+            <Border
+    BackgroundColor="Transparent"
+    Stroke="#8AF3FE"
+    StrokeThickness="2"
+    StrokeShape="RoundRectangle 25"
+    Padding="20">
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="🟢 CONTROLOS CORRIGIDOS!"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Label Text="A interferência desapareceu.
+Os teus comandos respondem corretamente."
+                           FontSize="16"
+                           TextColor="White"
+                           HorizontalTextAlignment="Center"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+
+            <Button Text="OK"
+                Margin="0,15,0,0"
+                BackgroundColor="Transparent"
+                TextColor="White"
+                CornerRadius="16"
+                BorderColor="#8AF3FE"
+                BorderWidth="2"
+                Clicked="btn_fechar2"/>
+        </Grid>
     </Grid>
 </ContentPage>

@@ -1,4 +1,4 @@
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
 using System.Threading.Tasks;
@@ -19,6 +19,8 @@ public partial class PageGuia : ContentPage
         _supabaseInitializationTask = InicializarSupabaseAsync();
     }
     bool labirinto = false;
+    bool invertido = false;
+    bool esta_na_porta = false;
     private async Task InicializarSupabaseAsync()
     {
         await _supabase.InitializeAsync();
@@ -65,11 +67,13 @@ public partial class PageGuia : ContentPage
         LabirintoView.IsVisible = true;
         LabirintoView.Opacity = 1;
         video1.Stop();
+        video1.Source = null;
+        video1.Handler?.DisconnectHandler();
     }
 
     private async Task atualizar_pos()
         {
-        while (true)
+        while (esta_na_porta == false)
         {
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
             var resposta = await _supabase.Client!.Rpc("obter_posicao", parametro);
@@ -83,7 +87,83 @@ public partial class PageGuia : ContentPage
             Grid.SetColumn(mira, posX);
             Grid.SetRow(mira, posY);
 
+            analise();
+
             await Task.Delay(300);
         }
+    }
+
+
+    private async void analise()
+    {
+        if (invertido == false)
+        {
+            if (Grid.GetColumn(mira) == 5 && Grid.GetRow(mira) == 3)
+            {
+                invertido = true;
+                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosInvertidos.IsVisible = true;
+
+            }
+            else if(Grid.GetColumn(mira) == 8 && Grid.GetRow(mira) == 3)
+            {
+                invertido = true;
+                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosInvertidos.IsVisible = true;
+            }
+            else if(Grid.GetColumn(mira) == 6 && Grid.GetRow(mira) == 9)
+            {
+                invertido = true;
+                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosInvertidos.IsVisible = true;
+            }
+        }
+        if (invertido == true)
+        {
+            if (Grid.GetColumn(mira) == 4 && Grid.GetRow(mira) == 3)
+            {
+                invertido = false;
+                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosCorretos.IsVisible = true;
+            }
+            else if (Grid.GetColumn(mira) == 8 && Grid.GetRow(mira) == 2)
+            {
+                invertido = false;
+                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosCorretos.IsVisible = true;
+            }
+            else if (Grid.GetColumn(mira) == 7 && Grid.GetRow(mira) == 9)
+            {
+                invertido = false;
+                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
+                //LabirintoView.Opacity = 0.4;
+                //ControlosCorretos.IsVisible = true;
+            }
+        }
+        if (Grid.GetColumn(mira) == 10 && Grid.GetRow(mira) == 5)
+        {
+            esta_na_porta = true;
+            await Navigation.PushAsync(new PageGuiaPorta());
+        }
+    }
+
+
+    private void btn_fechar(object sender, EventArgs e)
+    {
+        ControlosCorretos.IsVisible = false;
+        ControlosInvertidos.IsVisible = false;
+        LabirintoView.Opacity = 1;
+    }
+
+    private void btn_fechar2(object sender, EventArgs e)
+    {
+        ControlosCorretos.IsVisible = false;
+        ControlosInvertidos.IsVisible = false;
+        LabirintoView.Opacity = 1;
     }
 }

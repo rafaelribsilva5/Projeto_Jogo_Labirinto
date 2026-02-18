@@ -3,6 +3,7 @@ using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Runtime.CompilerServices;
 
 namespace Projeto_Jogo_Labirinto;
 
@@ -11,6 +12,7 @@ public partial class PageAgente : ContentPage
 	string codigo = "";
     int posX = 1;
     int posY = 6;
+    bool invertido = false;
     public PageAgente(string codigoo)
 	{
 		InitializeComponent();
@@ -26,41 +28,24 @@ public partial class PageAgente : ContentPage
         await _supabase.InitializeAsync();
     }
 
-    /*int[,] mapa = new int[14, 24]
-{
-    { 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5 },
-    { 5,1100,0101,0101,0101,0101,0110,1100,0101,0110,1101,0100,0101,0111,1100,0110,1101,0100,0101,0101,0101,0101,0110,5 },
-    { 5,1010,1100,0110,1100,0101,0011,1001,0110,1010,1100,0011,1100,0101,0011,1001,0110,1011,1100,0101,0101,0100,0011,5 },
-    { 5,1001,0011,1011,1001,0100,0101,0100,0011,1010,1001,0100,0011,1100,0111,1100,0001,0101,0011,1100,0110,1011,1110,5 },
-    { 5,1100,0101,0111,1100,0011,1100,0011,1100,0011,1101,0011,1100,0011,1100,0011,1100,0101,0101,0010,5,5,5,5 },
-    { 5,1001,0110,1100,0011,1100,0011,1110,1001,0110,8,1101,0010,1100,0011,1100,0011,1110,1100,5,5,5,5,5 },
-    { 5,1101,0010,1001,0110,1001,0110,1010,1100,0011,1001,0100,0011,1001,0110,1001,0110,1000,5,5,5,5,5,5 },
-    { 5,1110,1000,0101,0001,0111,1001,0010,1001,0110,1100,0010,1100,0111,1001,0110,1001,5,5,5,5,5,5,5 },
-    { 5,1001,0011,1101,0101,0110,1100,0011,1101,0011,1010,1011,1000,0101,0110,1001,0110,5,5,5,5,5,5,5 },
-    { 5,1101,0110,1100,0110,1001,0001,0110,1100,0101,0010,1110,1011,1100,0011,1100,0001,0011,5,5,5,5,5,5 },
-    { 5,1100,0011,1010,1001,0110,1110,1001,0010,1100,0011,1001,0110,1001,0101,0001,0110,1100,5,5,5,5,5,5 },
-    { 5,1010,1101,0001,0110,1010,1001,0101,0011,1001,0101,0110,1001,0101,0101,0110,1001,0011,1101,0011,1001,0110,1010,5 },
-    { 5,1001,0101,0101,0011,1001,0101,0101,0101,0101,0111,1001,0101,0101,0111,1001,0101,0101,0101,0101,0101,0011,1011,5 },
-    { 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5 }
-};*/
-
     string[,] mapa = new string[14, 24]
 {
     { "5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5" },
     { "5","1100","0101","0101","0101","0101","0110","1100","0101","0110","1101","0100","0101","0111","1100","0110","1101","0100","0101","0101","0101","0101","0110","5" },
     { "5","1010","1100","0110","1100","0101","0011","1001","0110","1010","1100","0011","1100","0101","0011","1001","0110","1011","1100","0101","0101","0100","0011","5" },
-    { "5","1001","0011","1011","1001","0100","0101","0100","0011","1010","1001","0100","0011","1100","0111","1100","0001","0101","0011","1100","0110","1011","1110","5" },
+    { "5","1001","0011","1011","1001","0100","0101","0100","0011","1010","1001","0100","0011","1100","0111","1100","0001","0111","0011","1100","0110","1011","1110","5" },
     { "5","1100","0101","0111","1100","0011","1100","0011","1100","0011","1101","0011","1100","0011","1100","0011","1100","0101","0101","0010","5","5","5","5" },
-    { "5","1001","0110","1100","0011","1100","0011","1110","1001","0110","8","1101","0010","1100","0011","1100","0011","1110","1100","5","5","5","5","5" },
-    { "5","1101","0010","1001","0110","1001","0110","1010","1100","0011","1001","0100","0011","1001","0110","1001","0110","1000","5","5","5","5","5","5" },
-    { "5","1110","1000","0101","0001","0111","1001","0010","1001","0110","1100","0010","1100","0111","1001","0110","1001","5","5","5","5","5","5","5" },
+    { "5","1001","0110","1100","0011","1100","0011","1110","1001","0110","1010","1101","0010","1100","0011","1100","0011","1110","1110","5","5","5","5","5" },
+    { "5","1101","0010","1001","0110","1001","0110","1010","1100","0011","1001","0100","0011","1001","0110","1001","0110","1010","5","5","5","5","5","5" },
+    { "5","1110","1000","0101","0001","0111","1001","0010","1001","0110","1100","0010","1100","0111","1001","0110","1011","5","5","5","5","5","5","5" },
     { "5","1001","0011","1101","0101","0110","1100","0011","1101","0011","1010","1011","1000","0101","0110","1001","0110","5","5","5","5","5","5","5" },
     { "5","1101","0110","1100","0110","1001","0001","0110","1100","0101","0010","1110","1011","1100","0011","1100","0001","0011","5","5","5","5","5","5" },
-    { "5","1100","0011","1010","1001","0110","1110","1001","0010","1100","0011","1001","0110","1001","0101","0001","0110","1100","5","5","5","5","5","5" },
+    { "5","1100","0011","1010","1001","0110","1110","1001","0010","1100","0011","1001","0110","1001","0101","0001","0110","1110","5","5","5","5","5","5" },
     { "5","1010","1101","0001","0110","1010","1001","0101","0011","1001","0101","0110","1001","0101","0101","0110","1001","0011","1101","0011","1001","0110","1010","5" },
     { "5","1001","0101","0101","0011","1001","0101","0101","0101","0101","0111","1001","0101","0101","0111","1001","0101","0101","0101","0101","0101","0011","1011","5" },
     { "5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5","5" }
 };
+
 
 
     protected override void OnAppearing()
@@ -70,7 +55,10 @@ public partial class PageAgente : ContentPage
 
 	private void Video1_MediaEnded(object? sender, EventArgs e)
 	{
-		MostrarLabirinto();
+        video1.Stop();
+        video1.Source = null;
+        video1.Handler?.DisconnectHandler();
+        MostrarLabirinto();
 	}
 
 	private void Video1_MediaFailed(object? sender, CommunityToolkit.Maui.Core.MediaFailedEventArgs e)
@@ -99,70 +87,219 @@ public partial class PageAgente : ContentPage
 
     private async void BtnEsquerda_Clicked(object sender, EventArgs e)
     {
-        string quadricula = mapa[posX, posY];
+        string quadricula = mapa[posY, posX];
         if (quadricula[0] == '0')
         {
-            posY--;
+            posX--;
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo },{ "p_posx", posX },{ "p_posy", posY} };
-            await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+            analise();
         }
         else
         {
-            await DisplayAlert("Movimento inválido", "Você não pode se mover para essa direção.", "OK");
             Mensagem.IsVisible = true;
+            Mensagem.Opacity = 1;
+            LabirintoView.Opacity = 0.4;
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
             await Task.Delay(2000);
             Mensagem.IsVisible = false;
+            Mensagem.Opacity = 0;
+            LabirintoView.Opacity = 1;
+            btn_baixo.IsEnabled = true;
+            btn_cima.IsEnabled = true;
+            btn_esquerda.IsEnabled = true;
+            btn_direita.IsEnabled = true;
         }
     }
     private async void BtnDireita_Clicked(object sender, EventArgs e)
     {
-        string quadricula = mapa[posX, posY];
-        if (quadricula[0] == '2')
+        string quadricula = mapa[posY, posX];
+        if (quadricula[2] == '0')
         {
-            posY++;
+            posX++;
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_posx", posX }, { "p_posy", posY } };
-            await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+            analise();
         }
         else
         {
-            await DisplayAlert("Movimento inválido", "Você não pode se mover para essa direção.", "OK");
             Mensagem.IsVisible = true;
+            Mensagem.Opacity = 1;
+            LabirintoView.Opacity = 0.4;
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
             await Task.Delay(2000);
             Mensagem.IsVisible = false;
+            Mensagem.Opacity = 0;
+            LabirintoView.Opacity = 1;
+            btn_baixo.IsEnabled = true;
+            btn_cima.IsEnabled = true;
+            btn_esquerda.IsEnabled = true;
+            btn_direita.IsEnabled = true;
         }
     }
     private async void BtnCima_Clicked(object sender, EventArgs e)
     {
-        string quadricula = mapa[posX, posY];
-        if (quadricula[0] == '1')
+        string quadricula = mapa[posY, posX];
+        if (quadricula[1] == '0')
         {
-            posX--;
+            posY--;
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_posx", posX }, { "p_posy", posY } };
-            await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+            analise();
         }
         else
         {
-            await DisplayAlert("Movimento inválido", "Você não pode se mover para essa direção.", "OK");
             Mensagem.IsVisible = true;
+            Mensagem.Opacity = 1;
+            LabirintoView.Opacity = 0.4;
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
             await Task.Delay(2000);
             Mensagem.IsVisible = false;
+            Mensagem.Opacity = 0;
+            LabirintoView.Opacity = 1;
+            btn_baixo.IsEnabled = true;
+            btn_cima.IsEnabled = true;
+            btn_esquerda.IsEnabled = true;
+            btn_direita.IsEnabled = true;
         }
     }
     private async void BtnBaixo_Clicked(object sender, EventArgs e)
     {
-        string quadricula = mapa[posX, posY];
-        if (quadricula[0] == '3')
+        string quadricula = mapa[posY, posX];
+        if (quadricula[3] == '0')
         {
-            posX++;
+            posY++;
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_posx", posX }, { "p_posy", posY } };
-            await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_posicao", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+            analise();
         }
         else
         {
-            await DisplayAlert("Movimento inválido", "Você não pode se mover para essa direção.", "OK");
             Mensagem.IsVisible = true;
+            Mensagem.Opacity = 1;
+            LabirintoView.Opacity = 0.4;
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
             await Task.Delay(2000);
             Mensagem.IsVisible = false;
+            Mensagem.Opacity = 0;
+            LabirintoView.Opacity = 1;
+            btn_baixo.IsEnabled = true;
+            btn_cima.IsEnabled = true;
+            btn_esquerda.IsEnabled = true;
+            btn_direita.IsEnabled = true;
+        }
+    }
+
+
+    private void analise()
+    {
+        if (invertido == false)
+        {
+            if (posX == 5 && posY == 3)
+            {
+                invertido = true;
+                mudar_controlos();
+            }
+            else if (posX == 8 && posY == 3)
+            {
+                invertido = true;
+                mudar_controlos();
+            }
+            else if (posX == 6 && posY == 9)
+            {
+                invertido = true;
+                mudar_controlos();
+            }
+        }
+        if (invertido == true)
+        {
+            if (posX == 4 && posY == 3)
+            {
+                invertido = false;
+                mudar_controlos();
+            }
+            else if (posX == 8 && posY == 2)
+            {
+                invertido = false;
+                mudar_controlos();
+            }
+            else if (posX == 7 && posY == 9)
+            {
+                invertido = false;
+                mudar_controlos();
+            }
+        }
+    }
+
+    private void mudar_controlos()
+    {
+         if (invertido == true)
+        {
+            btn_cima.Clicked -= BtnCima_Clicked;
+            btn_cima.Clicked += BtnBaixo_Clicked;
+
+            btn_baixo.Clicked -= BtnBaixo_Clicked;
+            btn_baixo.Clicked += BtnCima_Clicked;
+
+            btn_esquerda.Clicked -= BtnEsquerda_Clicked;
+            btn_esquerda.Clicked += BtnDireita_Clicked;
+
+            btn_direita.Clicked -= BtnDireita_Clicked;
+            btn_direita.Clicked += BtnEsquerda_Clicked;
+        }
+        else if (invertido == false)
+        {
+            btn_cima.Clicked -= BtnBaixo_Clicked;
+            btn_cima.Clicked += BtnCima_Clicked;
+
+            btn_baixo.Clicked -= BtnCima_Clicked;
+            btn_baixo.Clicked += BtnBaixo_Clicked;
+
+            btn_esquerda.Clicked -= BtnDireita_Clicked;
+            btn_esquerda.Clicked += BtnEsquerda_Clicked;
+
+            btn_direita.Clicked -= BtnEsquerda_Clicked;
+            btn_direita.Clicked += BtnDireita_Clicked;
         }
     }
 }
