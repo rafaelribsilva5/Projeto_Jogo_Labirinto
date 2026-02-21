@@ -2,11 +2,122 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Projeto_Jogo_Labirinto.PageAgentePorta"
-             Title="PageAgentePorta">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             Title="PageAgentePorta"
+                          NavigationPage.HasNavigationBar="False"
+Shell.NavBarIsVisible="False"
+BackgroundImageSource="fundo_mainpage_escuro2.png">
+    <Grid ColumnDefinitions="*, *"
+          RowDefinitions="Auto, Auto">
+
+        <VerticalStackLayout Grid.Column="0"
+                             Grid.Row="0">
+            <Label Text="PORTA FECHADA!"
+               FontSize="24"
+               FontFamily="Archive"
+               FontAttributes="Bold"
+               HorizontalOptions="Start"
+               Margin="10,25,0,10"
+               TextColor="#8AF3FE"/>
+        <Label Text="Parece que há um enigma para resolver...Cada símbolo aplica a sua regra ao número atual, seguindo a ordem da sequência. Começa com o valor inicial do primeiro símbolo; aplica cada operação até o último; o resultado final é o código da porta."
+                FontSize="14"
+                HorizontalOptions="Start"
+                Margin="10,0,20,20"
+                TextColor="White"/>
+        </VerticalStackLayout>
+        
+        
+        <VerticalStackLayout Grid.Column="0"
+                             Grid.Row="1"
+                             VerticalOptions="Center">
+            <Label Text="CÓDIGO Encriptado"
+       HorizontalTextAlignment="Start"
+       FontFamily="Archive"
+       FontSize="12"
+       VerticalTextAlignment="Start"
+       TextColor="White"
+       Margin="10,10,0,0"
+       HorizontalOptions="Start"
+       VerticalOptions="Center"/>
+            <Label x:Name ="lbl_CodigoEncriptado"
+                   Text=""
+       HorizontalTextAlignment="Start"
+       FontSize="40"
+       FontFamily="Archive"
+       FontAttributes="Bold"
+       VerticalTextAlignment="Start"
+       TextColor="#8AF3FE"
+       Margin="10,0,0,0"
+       HorizontalOptions="Start"
+       VerticalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="1"
+                     Grid.Row="0"
+                     Margin="0,25, 0, 0">
+            <Border Stroke="#8AF3FE"
+                    StrokeThickness="2"
+                    BackgroundColor="Transparent"
+                    Padding="10"
+                    Margin="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout>
+                    <Label Text="EXEMPLO"
+       FontSize="18"
+       FontFamily="Archive"
+       FontAttributes="Bold"
+       HorizontalOptions="Start"
+       Margin="10,10,0,10"
+       TextColor="White"/>
+                    <Label Text="Símbolos → ⟡ ⌬ ⟢"
+        FontSize="14"
+        HorizontalOptions="Start"
+        Margin="10,0,20,5"
+        TextColor="White"/>
+                    <Label Text="Regras → ⟡ = 3, ⌬ = x², ⟢ = x + 4"
+        FontSize="14"
+        HorizontalOptions="Start"
+        Margin="10,0,20,5"
+        TextColor="White"/>
+                    <Label Text="Cálculo → 3 → 9 → 13 → Código final = 13"
+        FontSize="14"
+        HorizontalOptions="Start"
+        Margin="10,0,20,5"
+        TextColor="White"/>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+
+
+        <VerticalStackLayout Grid.Column="1"
+                     Grid.Row="1">
+
+            <Entry x:Name="txt_CodigoPorta"
+   Placeholder="Insira o código da porta"
+   PlaceholderColor="#8AF3FE"
+   FontFamily="Archive"
+   FontSize="14"
+   FontAttributes="None"
+   TextColor="White"
+   Margin="20,30,2,5"
+   HorizontalOptions="Start"
+                WidthRequest="250"
+   BackgroundColor="Transparent"/>
+            <Button x:Name="btn_Verificar"
+    Text="Verificar"
+    FontFamily="Archive"
+    FontSize="16"
+    FontAttributes="None"
+    TextColor="White"
+    CornerRadius="14"
+    BackgroundColor="Transparent"
+    BorderWidth="2"
+    Margin="20,0,2,0"
+    BorderColor="#8AF3FE"
+    HorizontalOptions="Start"
+    Clicked="btn_Verificar_Clicked"/>
+        </VerticalStackLayout>
+
+    </Grid>
 </ContentPage>

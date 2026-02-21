@@ -18,6 +18,7 @@ namespace Projeto_Jogo_Labirinto
         public MainPage()
         {
             InitializeComponent();
+            DeviceDisplay.Current.KeepScreenOn = true;
             _supabaseInitializationTask = InicializarSupabaseAsync();
         }
 

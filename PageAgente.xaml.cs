@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
+using Microsoft.Maui.Devices.Sensors;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Runtime.CompilerServices;
@@ -13,9 +14,12 @@ public partial class PageAgente : ContentPage
     int posX = 1;
     int posY = 6;
     bool invertido = false;
+    bool esta_na_porta = false;
+    int total_agitar = 0;
     public PageAgente(string codigoo)
 	{
 		InitializeComponent();
+        DeviceDisplay.Current.KeepScreenOn = true;
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
     }
@@ -231,7 +235,7 @@ public partial class PageAgente : ContentPage
     }
 
 
-    private void analise()
+    private async void analise()
     {
         if (invertido == false)
         {
@@ -269,8 +273,63 @@ public partial class PageAgente : ContentPage
                 mudar_controlos();
             }
         }
+
+        if (posX == 10 && posY == 5)
+        {
+            esta_na_porta = true;
+            await Navigation.PushAsync(new PageAgentePorta(codigo));
+        }
+        if (posX == 14 && posY == 1)
+        {
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
+            Accelerometer.Start(SensorSpeed.Game);
+            Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
+
+        }
     }
 
+    private async void Accelerometer_ReadingChanged(object sender, AccelerometerChangedEventArgs e)
+    {
+        var a = e.Reading.Acceleration;
+
+        double aceleracao = Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
+        if (aceleracao >= 6)
+        {
+            total_agitar++;
+        }
+        if (total_agitar >= 300)
+        {
+            Accelerometer.Stop();
+            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+            await DisplayAlert("🟢 INTERFERÊNCIA REMOVIDA!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
+            await _supabase.Client!.Rpc("telemovel_abanou", parametro);
+            await esperar_calibragem();
+        }
+    }
+
+    private async Task esperar_calibragem()
+    {
+        bool calibragem_feita = false;
+        while (calibragem_feita == false)
+        {
+            var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
+            if (resposta.Content == "true")
+            {
+                calibragem_feita = true;
+                btn_baixo.IsEnabled = true;
+                btn_cima.IsEnabled = true;
+                btn_esquerda.IsEnabled = true;
+                btn_direita.IsEnabled = true;
+                break;
+            }
+            else
+                await Task.Delay(500);
+        }
+    }
     private void mudar_controlos()
     {
          if (invertido == true)

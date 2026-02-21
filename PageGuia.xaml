@@ -23,8 +23,8 @@
         </Grid>
 
 
-        
-        
+
+
         <Grid x:Name="LabirintoView"
                              IsVisible="False"
                              HorizontalOptions="Fill"
@@ -128,6 +128,67 @@ Os teus comandos respondem corretamente."
                 BorderColor="#8AF3FE"
                 BorderWidth="2"
                 Clicked="btn_fechar2"/>
+        </Grid>
+
+
+        <Grid x:Name="Abanar_necessario"
+          BackgroundColor="Transparent"
+        IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+              RowDefinitions="*,5*, *"/>
+            <Border
+    BackgroundColor="#B3000105"
+    Grid.Column="1"
+    Grid.Row="1"
+    Stroke="#8AF3FE"
+    StrokeThickness="2"
+    Padding="20"
+    HorizontalOptions="Center"
+    VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="NOVAMENTE MAIS INTERFERÊNCIA!"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#8AF3FE"
+                           FontFamily="Archive"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Grid ColumnDefinitions="2*, *"
+                          HorizontalOptions="Fill">
+                        <Label Text="A comunicação está instável entre o guia e o agente. Ambos precisam de abanar o telemóvel para fazer uma nova calibragem."
+       FontSize="16"
+       Grid.Column="0"
+       TextColor="White"
+       Padding="20"
+       HorizontalTextAlignment="Center"
+       VerticalOptions="Center"
+       HorizontalOptions="Center"/>
+                        <Image Source="telemovel_vibrar.png"
+       HeightRequest="160"
+       Grid.Column="1"
+       Margin="10, 0, 0, 0"
+       HorizontalOptions="Center" 
+       VerticalOptions="Center"/>
+
+                    </Grid>
+                    <Label Text="ESTA MENSAGEM DESAPARECERÁ ASSIM QUE A CALIBRAGEM ESTIVER CONCLUÍDA!"
+       HorizontalTextAlignment="Start"
+       FontFamily="Archive"
+       TextColor="#8AF3FE"
+       FontSize="12"
+       VerticalTextAlignment="Start"
+       Margin="8,20,0,0"
+       HorizontalOptions="Center"
+       VerticalOptions="Start"/>
+                    
+
+                </VerticalStackLayout>
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>
