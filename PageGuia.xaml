@@ -190,5 +190,102 @@ Os teus comandos respondem corretamente."
                 </VerticalStackLayout>
             </Border>
         </Grid>
+
+
+
+        <Grid x:Name="Morse"
+      BackgroundColor="Transparent"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="POUCA VISIBILIDADE!"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="#8AF3FE"
+                       FontFamily="Archive"
+                       HorizontalTextAlignment="Center"/>
+                    <Label Text="A penumbra aqui é traiçoeira… mas a lanterna pode falar! Segue as intruções abaixo para conseguires prosseguir..."
+FontSize="16"
+TextColor="White"
+Padding="10"
+HorizontalTextAlignment="Center"
+VerticalOptions="Center"
+HorizontalOptions="Center"/>
+
+                    <Grid ColumnDefinitions="2*, *"
+                      HorizontalOptions="Fill">
+                        <VerticalStackLayout Grid.Column ="0">
+
+                        <Label Text="ESQUERDA → 🔦🟡🟡🟡  (pisca longo uma vez)"
+FontSize="16"
+TextColor="White"
+HorizontalTextAlignment="Center"
+VerticalOptions="Center"
+HorizontalOptions="Start"/>
+                            <Label Text="CIMA → 🔦🟡  (pisca curto uma vez)"
+FontSize="16"
+TextColor="White"
+HorizontalTextAlignment="Center"
+VerticalOptions="Center"
+HorizontalOptions="Start"/>
+                            <Label Text="DIREITA → 🔦🟡🟡🟡  🔦🟡🟡🟡  (pisca longo duas vezes)"
+FontSize="16" 
+TextColor="White"
+HorizontalTextAlignment="Center"
+VerticalOptions="Center"
+HorizontalOptions="Start"/>
+                            <Label Text="BAIXO → 🔦🟡  🔦🟡  (pisca curto duas vezes)"
+FontSize="16" 
+TextColor="White"
+HorizontalTextAlignment="Center"
+VerticalOptions="Center"
+HorizontalOptions="Start"/>
+                            <Label Text="Entre cada direção há uma pausa de 2 segundos."
+FontSize="16" 
+TextColor="White"
+HorizontalTextAlignment="Center"
+Margin ="0, 5, 0, 0" 
+VerticalOptions="Center"
+HorizontalOptions="Start"/>
+
+                        </VerticalStackLayout>
+
+                    <Image Source="lanterna_morse.png"
+   HeightRequest="120"
+   Grid.Column="1"
+   Margin="10, 0, 0, 0"
+   HorizontalOptions="Center" 
+   VerticalOptions="Center"/>
+
+                    </Grid>
+                    <Label Text="ESTA MENSAGEM DESAPARECERÁ ASSIM QUE A SAIR DO LABIRINTO COM SUCESSO!"
+   HorizontalTextAlignment="Start"
+   FontFamily="Archive"
+   TextColor="#8AF3FE"
+   FontSize="12"
+   VerticalTextAlignment="Start"
+   Margin="8,20,0,0"
+   HorizontalOptions="Center"
+   VerticalOptions="Start"/>
+
+
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </Grid>
 </ContentPage>

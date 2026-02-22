@@ -27,6 +27,8 @@ public partial class PageGuia : ContentPage
     bool interferencia = false;
     int total_agitar = 0;
     bool passou_interferencia = false;
+    bool esta_no_morse = false;
+
     private async Task InicializarSupabaseAsync()
     {
         await _supabase.InitializeAsync();
@@ -84,7 +86,7 @@ public partial class PageGuia : ContentPage
 
     private async Task atualizar_pos()
         {
-        while (esta_na_porta == false && interferencia == false)
+        while (esta_na_porta == false && interferencia == false && esta_no_morse == false)
         {
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
             var resposta = await _supabase.Client!.Rpc("obter_posicao", parametro);
@@ -170,24 +172,50 @@ public partial class PageGuia : ContentPage
             Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
         }
+        if (Grid.GetColumn(mira) == 16 && Grid.GetRow(mira) == 9)
+        {
+            Morse.IsVisible = true;
+            esta_no_morse = true;
+            verificar_morse();
+        }
     }
+
+    private async Task verificar_morse()
+    {
+        bool morse_feito = false;
+        while (morse_feito == false)
+        {
+            var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            var resposta = await _supabase.Client!.Rpc("verificar_morse", parametro);
+            if (resposta.Content == "true")
+            {
+                morse_feito = true;
+                await DisplayAlert("bf", "bef", "bef");
+                Morse.IsVisible = false;
+                break;
+            }
+            else
+                await Task.Delay(500);
+        }
+    }
+
+
 
     private async void Accelerometer_ReadingChanged(object sender, AccelerometerChangedEventArgs e)
     {
         var a = e.Reading.Acceleration;
 
         double aceleracao = Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
-        if (aceleracao >= 6)
+        if (aceleracao >= 5)
         {
             total_agitar++;
         }
-        if (total_agitar >= 300)
+        if (total_agitar >= 200)
         {
             Accelerometer.Stop();
             Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
             await _supabase.Client!.Rpc("telemovel_abanou", parametro);
-            await DisplayAlert("🟢 INTERFERÊNCIA REMOVIDA!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
             await esperar_calibragem();
         }
     }

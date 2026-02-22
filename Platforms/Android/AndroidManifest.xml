@@ -3,7 +3,8 @@
 	<application android:allowBackup="true" android:icon="@mipmap/logo" android:supportsRtl="true" android:label="Protocol: Blind Run"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.FLASHLIGHT" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.FLASHLIGHT"/>
 	<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 	<uses-feature android:name="android.hardware.sensor.accelerometer" />
 </manifest>

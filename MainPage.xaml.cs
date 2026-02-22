@@ -1,8 +1,10 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
+using static Microsoft.Maui.ApplicationModel.Permissions;
+using Microsoft.Maui.Devices;
 
 namespace Projeto_Jogo_Labirinto
 {
@@ -15,6 +17,7 @@ namespace Projeto_Jogo_Labirinto
         private string minhaFuncao = "";
         bool clicouSair = false;
 
+
         public MainPage()
         {
             InitializeComponent();
@@ -25,6 +28,12 @@ namespace Projeto_Jogo_Labirinto
         private async Task InicializarSupabaseAsync()
         {
             await _supabase.InitializeAsync();
+
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Camera>();
+            }
         }
 
 

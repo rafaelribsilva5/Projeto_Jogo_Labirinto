@@ -92,10 +92,39 @@ BackgroundColor="Transparent"/>
            BorderWidth="2"
            Padding="16"
            BorderColor="#8AF3FE"/>
+        </Grid>
 
 
 
 
+
+        <Grid x:Name="Contagem"
+      IsVisible="False">
+            <Label x:Name="lbl_Contagem"
+   TextColor="White"
+   FontSize="70"
+   FontFamily="Archive"
+   HorizontalOptions="Center"
+   VerticalOptions="Center"
+   BackgroundColor="Transparent"
+   Text="Começa em "/>
+        </Grid>
+
+        <Grid x:Name="Morse_incorreto"
+      IsVisible="False">
+            <Button x:Name="lbl_Morse_incorreto"
+            IsEnabled="False"
+   TextColor="White"
+   FontSize="Small"
+   HorizontalOptions="Center"
+   VerticalOptions="Center"
+   WidthRequest="400"
+   BackgroundColor="Transparent"
+   Text="Saída não encontrada! Vamos recomeçar."
+   CornerRadius="16"
+   BorderWidth="2"
+   Padding="16"
+   BorderColor="#8AF3FE"/>
         </Grid>
     </Grid>
 </ContentPage>

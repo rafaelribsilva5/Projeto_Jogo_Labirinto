@@ -1,27 +1,35 @@
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Networking;
-using Projeto_Jogo_Labirinto.Services;
 using Microsoft.Maui.Devices.Sensors;
-using System.Threading.Tasks;
-using System.Text.Json;
+using Microsoft.Maui.Networking;
+using Plugin.Maui.Audio;
+using Projeto_Jogo_Labirinto.Services;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Projeto_Jogo_Labirinto;
 
 public partial class PageAgente : ContentPage
 {
-	string codigo = "";
+     private IAudioManager _audioManager;
+
+    string codigo = "";
     int posX = 1;
     int posY = 6;
     bool invertido = false;
     bool esta_na_porta = false;
     int total_agitar = 0;
+    string[] morse = { "--", ".", "--", "--", ".", ".", "-", "..", "--", "--", "..", "-", "..", "--"};
+    int[] correcao_morse = new int[4];
+    bool esta_no_morse = false;
     public PageAgente(string codigoo)
 	{
 		InitializeComponent();
         DeviceDisplay.Current.KeepScreenOn = true;
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
+        _audioManager = AudioManager.Current;
     }
 
     private readonly SupabaseService _supabase = new SupabaseService();
@@ -91,6 +99,11 @@ public partial class PageAgente : ContentPage
 
     private async void BtnEsquerda_Clicked(object sender, EventArgs e)
     {
+        if (esta_no_morse == true)
+        {
+            correcao_morse[0]++;
+            return;
+        }
         string quadricula = mapa[posY, posX];
         if (quadricula[0] == '0')
         {
@@ -127,6 +140,11 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnDireita_Clicked(object sender, EventArgs e)
     {
+        if (esta_no_morse == true)
+        {
+            correcao_morse[2]++;
+            return;
+        }
         string quadricula = mapa[posY, posX];
         if (quadricula[2] == '0')
         {
@@ -163,6 +181,11 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnCima_Clicked(object sender, EventArgs e)
     {
+        if (esta_no_morse == true)
+        {
+            correcao_morse[1]++;
+            return;
+        }
         string quadricula = mapa[posY, posX];
         if (quadricula[1] == '0')
         {
@@ -199,6 +222,11 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnBaixo_Clicked(object sender, EventArgs e)
     {
+        if (esta_no_morse == true)
+        {
+            correcao_morse[3]++;
+            return;
+        }
         string quadricula = mapa[posY, posX];
         if (quadricula[3] == '0')
         {
@@ -287,7 +315,11 @@ public partial class PageAgente : ContentPage
             btn_direita.IsEnabled = false;
             Accelerometer.Start(SensorSpeed.Game);
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
-
+        }
+        if (posX == 16 && posY == 9)
+        {
+            mostrar_morse();
+            esta_no_morse = true;
         }
     }
 
@@ -296,15 +328,14 @@ public partial class PageAgente : ContentPage
         var a = e.Reading.Acceleration;
 
         double aceleracao = Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
-        if (aceleracao >= 6)
+        if (aceleracao >= 5)
         {
             total_agitar++;
         }
-        if (total_agitar >= 300)
+        if (total_agitar >= 200)
         {
             Accelerometer.Stop();
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-            await DisplayAlert("🟢 INTERFERÊNCIA REMOVIDA!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
             await _supabase.Client!.Rpc("telemovel_abanou", parametro);
             await esperar_calibragem();
         }
@@ -359,6 +390,84 @@ public partial class PageAgente : ContentPage
 
             btn_direita.Clicked -= BtnEsquerda_Clicked;
             btn_direita.Clicked += BtnDireita_Clicked;
+        }
+    }
+
+    private async Task mostrar_morse()
+    {
+        await Task.Delay(10000);
+        Contagem.IsVisible = true;
+        lbl_Contagem.Text = "COMEÇA EM";
+        await Task.Delay(1000);
+        lbl_Contagem.Text = "3";
+        await Task.Delay(1000);
+        lbl_Contagem.Text = "2";
+        await Task.Delay(1000);
+        lbl_Contagem.Text = "1";
+        await Task.Delay(1000);
+        Contagem.IsVisible = false;
+        foreach (string simbolo in morse)
+        {
+            if (simbolo == "--")
+            {
+                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(1300);
+                await Flashlight.TurnOffAsync();
+                await Task.Delay(300);
+                player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(1300);
+                await Flashlight.TurnOffAsync();
+            }
+            else if (simbolo == ".")
+            {
+                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(300);
+                await Flashlight.TurnOffAsync();
+            }
+                
+            else if (simbolo == "..")
+            {
+                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(300);
+                await Flashlight.TurnOffAsync();
+                await Task.Delay(300);
+                player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(300);
+                await Flashlight.TurnOffAsync();
+            }
+            else if (simbolo == "-")
+            {
+                await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3");
+                await Flashlight.TurnOnAsync();
+                await Task.Delay(1300);
+                await Flashlight.TurnOffAsync();
+            }
+            await Task.Delay(2000);
+        }
+        await Task.Delay(2000);
+        string mensagem_morse = "";
+        for (int i = 0; i < 4; i++)
+        {
+            mensagem_morse += correcao_morse[i].ToString();
+        }
+        if (mensagem_morse == "2363")
+        {
+            var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
+            await _supabase.Client!.Rpc("morse_resolvido", parametro);
+            await DisplayAlert("Morse", "Código Morse correto! Você pode continuar o labirinto.", "OK");
+        }
+        else
+        {
+            Morse_incorreto.IsVisible = true;
+            await Task.Delay(2000);
+            Morse_incorreto.IsVisible = false;
+            correcao_morse = new int[4];
+            await mostrar_morse();
         }
     }
 }

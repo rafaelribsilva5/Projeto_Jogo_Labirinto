@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using CommunityToolkit.Maui;
+using Plugin.Maui.Audio;
 
 namespace Projeto_Jogo_Labirinto
 {
@@ -19,6 +20,7 @@ namespace Projeto_Jogo_Labirinto
 
             // opcional: registrar o serviço se quiseres DI no futuro
             // builder.Services.AddSingleton<SupabaseService>();
+            builder.Services.AddSingleton(AudioManager.Current);
 
             return builder.Build();
         }
