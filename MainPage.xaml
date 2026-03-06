@@ -11,10 +11,10 @@
             <VerticalStackLayout x:Name="PaginaPrincipal"
                              IsVisible="True"
                              Opacity="1">
-            <Grid 
+                <Grid 
                 BackgroundColor="Transparent"
                 ColumnDefinitions="*, *">
-                <Image Source="logo_completoo.png"
+                    <Image Source="logo_completoo.png"
                        Grid.Column="0"
                        BackgroundColor="Transparent"
                        HorizontalOptions="Center"
@@ -63,28 +63,28 @@
                         </Grid>
                     </Grid>
                 </Grid>
-        </VerticalStackLayout>
+            </VerticalStackLayout>
 
-        
-        
-        
-        
-        <VerticalStackLayout x:Name="CriarSalaView"
+
+
+
+
+            <VerticalStackLayout x:Name="CriarSalaView"
                              IsVisible="False"
                              Opacity="0">
-            <Grid 
+                <Grid 
         ColumnDefinitions="*, *">
-                <Image Source="logo_completo.png"
+                    <Image Source="logo_completoo.png"
                Grid.Column="0"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                Margin="16,16,16,16"/>
-                <Grid
+                    <Grid
                     ColumnDefinitions="*, *"
                     RowDefinitions="*, *"
                     Padding="2"
                     Grid.Column="1">
-                    <ImageButton Source="fundo_criar_sala.png"
+                        <ImageButton Source="fundo_criar_sala.png"
                            Aspect="AspectFit"
                            HorizontalOptions="Fill"
                            VerticalOptions="Fill"
@@ -96,19 +96,19 @@
                            BorderWidth="2"
                            BorderColor="#8AF3FE"
                            Clicked="btn_Criar_Sala_Clicked">
-                    </ImageButton>
-                    <Image Source="descricao.png"
+                        </ImageButton>
+                        <Image Source="descricao.png"
                                  Aspect="AspectFit"
                                     Margin="16"
                             HorizontalOptions="Center"
                             VerticalOptions="Center"
                             Grid.Row="0"
                             Grid.Column="1"/>
-                    <VerticalStackLayout Grid.Row="1"
+                        <VerticalStackLayout Grid.Row="1"
                                          Grid.Column="0"
                                          Padding="2"
                                          >
-                        <Label Text="QUEM SOU?"
+                            <Label Text="QUEM SOU?"
                                HorizontalTextAlignment="Center"
                                FontFamily="Archive"
                                FontSize="24"
@@ -118,7 +118,7 @@
                                Margin="0,10,0,4"
                                HorizontalOptions="Fill"
                                VerticalOptions="Start"/>
-                        <Button x:Name="btn_Agente"
+                            <Button x:Name="btn_Agente"
                                 Text="AGENTE"
                                 FontFamily="Archive"
                                 FontSize="16"
@@ -134,7 +134,7 @@
                                 HorizontalOptions="Fill"
                                 VerticalOptions="Fill"
                                 Clicked="btnAgente_Click"/>
-                        <Button x:Name="btn_Guia"
+                            <Button x:Name="btn_Guia"
                                 Text="GUIA"
                                 FontSize="14"
                                 FontFamily="Archive"
@@ -150,11 +150,11 @@
                                 HorizontalOptions="Fill"
                                 VerticalOptions="Fill"
                                 Clicked="btnGuia_Click"/>
-                    </VerticalStackLayout>
-                    <VerticalStackLayout Grid.Row="1"
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Row="1"
                                          Grid.Column="1"
                                          Padding="2">
-                        <Label Text="CÓDIGO"
+                            <Label Text="CÓDIGO"
                                HorizontalTextAlignment="Start"
                                FontFamily="Archive"
                                FontSize="12"
@@ -163,7 +163,7 @@
                                Margin="8,20,0,0"
                                HorizontalOptions="Fill"
                                VerticalOptions="Start"/>
-                        <Label x:Name ="lbl_Codigo"
+                            <Label x:Name ="lbl_Codigo"
                                HorizontalTextAlignment="Start"
                                FontFamily="Archive"
                                FontSize="35"
@@ -173,13 +173,13 @@
                                Margin="8,0,0,0"
                                HorizontalOptions="Fill"
                                VerticalOptions="Fill"/>
-                    </VerticalStackLayout>
-                    <Grid Grid.Column="1"
+                        </VerticalStackLayout>
+                        <Grid Grid.Column="1"
                           Padding="2"
                           ColumnDefinitions="2*, *"
                           RowDefinitions="3*, *"
                           Grid.Row="1">
-                        <Label   x:Name="lbl_Aguardar"
+                            <Label   x:Name="lbl_Aguardar"
         Text=""
         Grid.Column="0"
          Grid.Row="1"
@@ -193,7 +193,7 @@
         HorizontalOptions="Start"
         VerticalOptions="End"/>
 
-                        <ImageButton Source="retroceder.png"
+                            <ImageButton Source="retroceder.png"
                                      Aspect="AspectFit"
                                      BackgroundColor="Transparent"
                                      BorderWidth="2"
@@ -206,11 +206,11 @@
                                      HorizontalOptions="Fill"
                                      Clicked="btn_Voltar"/>
 
+                        </Grid>
                     </Grid>
-                </Grid>
 
-            </Grid>
-        </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
 
 
 
@@ -222,7 +222,7 @@
                      Opacity="0">
                 <Grid 
         ColumnDefinitions="*, *">
-                    <Image Source="logo_completo.png"
+                    <Image Source="logo_completoo.png"
                Grid.Column="0"
                HorizontalOptions="Center"
                VerticalOptions="Center"
@@ -336,7 +336,7 @@
                      Opacity="0">
                 <Grid 
         ColumnDefinitions="*, *">
-                    <Image Source="logo_completo.png"
+                    <Image Source="logo_completoo.png"
                Grid.Column="0"
                HorizontalOptions="Center"
                VerticalOptions="Center"
@@ -420,8 +420,111 @@ VerticalOptions="End"/>
                     </Grid>
                 </Grid>
             </VerticalStackLayout>
+
+
+            <Grid x:Name="fechar_sala"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+                <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+                <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label Text="Deseja sair da sala?"
+   FontSize="16"
+   Grid.Column="0"
+   TextColor="White"
+   Padding="20"
+   HorizontalTextAlignment="Center"
+   VerticalOptions="Center"
+   HorizontalOptions="Center"/>
+                        <HorizontalStackLayout HorizontalOptions="Center">
+                            <Button x:Name="btn_Sim"
+Text="Sim"
+FontFamily="Archive"
+FontSize="16"
+FontAttributes="None"
+TextColor="White"
+CornerRadius="14"
+BackgroundColor="Transparent"
+BorderWidth="2"
+Margin="0,10,5,0"
+BorderColor="#8AF3FE"
+HorizontalOptions="Center"
+Clicked="btn_Sim_Clicked"/>
+                            <Button x:Name="btn_Nao"
+Text="Não"
+FontFamily="Archive"
+FontSize="16"
+FontAttributes="None"
+TextColor="White"
+CornerRadius="14"
+BackgroundColor="Transparent"
+BorderWidth="2"
+Margin="0,10,2,0"
+BorderColor="#8AF3FE"
+HorizontalOptions="Center"
+Clicked="btn_Nao_Clicked"/>
+
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+
+
+
+            <Grid x:Name="codigo_errado"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+                <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+                <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label Text="CÓDIGO INVÁLIDO"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                        <Label
+    Text="O código inserido não corresponde a nenhuma sala ativa. Por favor, verifique o código ou tente novamente."
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
         </Grid>
     </ScrollView>
-
 
 </ContentPage>

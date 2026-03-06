@@ -12,13 +12,17 @@ namespace Projeto_Jogo_Labirinto;
 
 public partial class PageAgente : ContentPage
 {
-     private IAudioManager _audioManager;
+    private IAudioPlayer click_som;
+    private IAudioManager _audioManager = AudioManager.Current;
 
     string codigo = "";
+    int digito = 0;
     int posX = 1;
     int posY = 6;
     bool invertido = false;
     bool esta_na_porta = false;
+    bool porta_resolvida = false;
+    bool agitar_resolvido = false;
     int total_agitar = 0;
     string[] morse = { "--", ".", "--", "--", ".", ".", "-", "..", "--", "..", "-", "--"};
     int[] correcao_morse = new int[4];
@@ -60,20 +64,34 @@ public partial class PageAgente : ContentPage
 
 
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
 	{
 		base.OnAppearing();
-	}
 
-	private void Video1_MediaEnded(object? sender, EventArgs e)
+        if (click_som == null)
+        {
+            var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
+            click_som = _audioManager.CreatePlayer(stream2);
+        }
+    }
+
+	private async void Video1_MediaEnded(object? sender, EventArgs e)
 	{
         video1.Stop();
         video1.Source = null;
         video1.Handler?.DisconnectHandler();
         MostrarLabirinto();
-	}
+        await verificar_digito();
+    }
 
-	private void Video1_MediaFailed(object? sender, CommunityToolkit.Maui.Core.MediaFailedEventArgs e)
+    private void btn_Avancar_Clicked(object? sender, EventArgs e)
+    {
+        click_som.Play();
+        botao.IsVisible = false;
+        Video1_MediaEnded(sender, e);
+    }
+
+    private void Video1_MediaFailed(object? sender, CommunityToolkit.Maui.Core.MediaFailedEventArgs e)
 	{
 		System.Diagnostics.Debug.WriteLine($"[PageAgente] Vídeo falhou: {e?.ErrorMessage}");
 		MostrarLabirinto();
@@ -99,6 +117,7 @@ public partial class PageAgente : ContentPage
 
     private async void BtnEsquerda_Clicked(object sender, EventArgs e)
     {
+        click_som.Play();
         if (esta_no_morse == true)
         {
             correcao_morse[0]++;
@@ -140,6 +159,7 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnDireita_Clicked(object sender, EventArgs e)
     {
+        click_som.Play();
         if (esta_no_morse == true)
         {
             correcao_morse[2]++;
@@ -181,6 +201,7 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnCima_Clicked(object sender, EventArgs e)
     {
+        click_som.Play();
         if (esta_no_morse == true)
         {
             correcao_morse[1]++;
@@ -222,6 +243,7 @@ public partial class PageAgente : ContentPage
     }
     private async void BtnBaixo_Clicked(object sender, EventArgs e)
     {
+        click_som.Play();
         if (esta_no_morse == true)
         {
             correcao_morse[3]++;
@@ -302,12 +324,12 @@ public partial class PageAgente : ContentPage
             }
         }
 
-        if (posX == 10 && posY == 5)
+        if (posX == 10 && posY == 5 && porta_resolvida == false)
         {
-            esta_na_porta = true;
+            porta_resolvida = true;
             await Navigation.PushAsync(new PageAgentePorta(codigo));
         }
-        if (posX == 14 && posY == 1)
+        if (posX == 14 && posY == 1 && agitar_resolvido == false)
         {
             btn_baixo.IsEnabled = false;
             btn_cima.IsEnabled = false;
@@ -356,6 +378,7 @@ public partial class PageAgente : ContentPage
                 btn_cima.IsEnabled = true;
                 btn_esquerda.IsEnabled = true;
                 btn_direita.IsEnabled = true;
+                agitar_resolvido = true;
                 break;
             }
             else
@@ -471,7 +494,7 @@ public partial class PageAgente : ContentPage
                 if (tempo_restante != 900)
                 {
                     tempo_restante = 180 - tempo_restante;
-                    string tempo_restante_str = tempo_restante.ToString(@"mm\:ss");
+                    string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                     await Navigation.PushAsync(new PageFim(tempo_restante_str));
                 }
 
@@ -483,11 +506,78 @@ public partial class PageAgente : ContentPage
         }
         else
         {
-            Morse_incorreto.IsVisible = true;
-            await Task.Delay(2000);
-            Morse_incorreto.IsVisible = false;
+            morse_errado.IsVisible = true;
+            await Task.Delay(2500);
+            morse_errado.IsVisible = false;
             correcao_morse = new int[4];
             await mostrar_morse();
         }
+    }
+
+
+    private async Task verificar_digito()
+    {
+        while (true)
+        {
+            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+            var resposta = await _supabase.Client!.Rpc("qual_digito", parametro);
+
+            digito = int.Parse(resposta.Content);
+
+            analise2();
+
+            await Task.Delay(300);
+        }
+    }
+
+
+    private async void analise2()
+    {
+        if (digito == 1)
+        {
+            posX = 1;
+            posY = 6;
+            esta_no_morse = false;
+            invertido = false;
+            esta_na_porta = false;
+            total_agitar = 0;
+            correcao_morse = new int[4];
+            porta_resolvida = false;
+            agitar_resolvido = false;
+            btn_baixo.Clicked -= BtnBaixo_Clicked;
+            btn_cima.Clicked -= BtnCima_Clicked;
+            btn_esquerda.Clicked -= BtnEsquerda_Clicked;
+            btn_direita.Clicked -= BtnDireita_Clicked;
+            mudar_controlos();
+
+            var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_digito", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+        }
+        if(digito == 2)
+        {
+            var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
+            try
+            {
+                await _supabase.Client!.Rpc("atualizar_digito", parametros);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
+
+            Application.Current.MainPage = new NavigationPage(new MainPage());
+        }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return true;
     }
 }

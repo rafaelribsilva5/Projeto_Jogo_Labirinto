@@ -6,6 +6,7 @@
                           NavigationPage.HasNavigationBar="False"
 Shell.NavBarIsVisible="False"
 BackgroundImageSource="fundo_mainpage_escuro2.png">
+    <Grid>
     <Grid ColumnDefinitions="*, *"
           RowDefinitions="Auto, Auto">
 
@@ -90,10 +91,10 @@ BackgroundImageSource="fundo_mainpage_escuro2.png">
         </VerticalStackLayout>
 
 
-        <VerticalStackLayout Grid.Column="1"
+            <VerticalStackLayout Grid.Column="1"
                      Grid.Row="1">
 
-            <Entry x:Name="txt_CodigoPorta"
+                <Entry x:Name="txt_CodigoPorta"
    Placeholder="Insira o código da porta"
    PlaceholderColor="#8AF3FE"
    FontFamily="Archive"
@@ -104,7 +105,7 @@ BackgroundImageSource="fundo_mainpage_escuro2.png">
    HorizontalOptions="Start"
                 WidthRequest="250"
    BackgroundColor="Transparent"/>
-            <Button x:Name="btn_Verificar"
+                <Button x:Name="btn_Verificar"
     Text="Verificar"
     FontFamily="Archive"
     FontSize="16"
@@ -117,7 +118,87 @@ BackgroundImageSource="fundo_mainpage_escuro2.png">
     BorderColor="#8AF3FE"
     HorizontalOptions="Start"
     Clicked="btn_Verificar_Clicked"/>
-        </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
 
+
+        <Grid x:Name="codigo_correto"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="PORTA ABERTA!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                    <Label
+    Text="Código correto! Podes avançar sem mais demoras."
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+
+        <Grid x:Name="codigo_errado"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="OH NÃO!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                    <Label
+    Text="Código incorreto! Tente novamente."
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </Grid>
 </ContentPage>

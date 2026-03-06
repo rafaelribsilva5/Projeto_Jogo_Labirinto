@@ -1,9 +1,10 @@
 ﻿using Microsoft.Maui.Controls;
-using Microsoft.Maui.Networking;
-using Projeto_Jogo_Labirinto.Services;
 using Microsoft.Maui.Devices.Sensors;
-using System.Threading.Tasks;
+using Microsoft.Maui.Networking;
+using Plugin.Maui.Audio;
+using Projeto_Jogo_Labirinto.Services;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Projeto_Jogo_Labirinto;
 
@@ -12,6 +13,9 @@ public partial class PageGuia : ContentPage
     string codigo = "";
     private readonly SupabaseService _supabase = new SupabaseService();
     private Task _supabaseInitializationTask = null!;
+
+    private IAudioPlayer click_som;
+    private IAudioManager _audioManager = AudioManager.Current;
 
     int tempo = 180;
     IDispatcherTimer timer;
@@ -28,6 +32,7 @@ public partial class PageGuia : ContentPage
     bool invertido = false;
     bool esta_na_porta = false;
     bool entrou_na_porta = false;
+    bool porta_resolvida = false;
     bool interferencia = false;
     int total_agitar = 0;
     bool passou_interferencia = false;
@@ -40,9 +45,15 @@ public partial class PageGuia : ContentPage
 
     Image mira;
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
 	{
 		base.OnAppearing();
+
+        if (click_som == null)
+        {
+            var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
+            click_som = _audioManager.CreatePlayer(stream2);
+        }
 
         if (labirinto == true)
         {
@@ -115,6 +126,7 @@ public partial class PageGuia : ContentPage
                 total_agitar = 0;
                 passou_interferencia = false;
                 esta_no_morse = false;
+                porta_resolvida = false;
 
                 tempo = 180;
                 Tempo_acabou.IsVisible = true;
@@ -123,8 +135,18 @@ public partial class PageGuia : ContentPage
         timer.Start();
     }
 
-    private void btn_Recomecar_Clicked (object? sender, EventArgs e)
+    private async void btn_Recomecar_Clicked (object? sender, EventArgs e)
     {
+        click_som.Play(); 
+        var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 1 }};
+        try
+        {
+            await _supabase.Client!.Rpc("atualizar_digito", parametros);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro", ex.Message, "OK");
+        }
         Grid.SetColumn(mira, 1);
         Grid.SetRow(mira, 6);
 
@@ -133,13 +155,21 @@ public partial class PageGuia : ContentPage
         Tempo_acabou.IsVisible = false;
 
         IniciarTimer();
-        atualizar_pos();
     }
     private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
     {
-        await Navigation.PopToRootAsync();
+        click_som.Play();
+        Application.Current.MainPage = new NavigationPage(new MainPage());
 
-        //falta volta pagina inicial no agente
+        var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 2 } };
+        try
+        {
+            await _supabase.Client!.Rpc("atualizar_digito", parametros);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro", ex.Message, "OK");
+        }
     }
 
 
@@ -156,6 +186,13 @@ public partial class PageGuia : ContentPage
         Tempo.IsVisible = true;
     }
 
+    private void btn_Avancar_Clicked(object? sender, EventArgs e)
+    {
+        click_som.Play();
+        botao.IsVisible = false;
+        Video1_MediaEnded(sender, e);
+    }
+
     private async Task atualizar_pos()
         {
         while (esta_na_porta == false && interferencia == false && esta_no_morse == false)
@@ -168,6 +205,9 @@ public partial class PageGuia : ContentPage
 
             int posX = root.GetProperty("posX").GetInt32();
             int posY = root.GetProperty("posY").GetInt32();
+
+            MapaGrid.Children.Remove(mira);
+            MapaGrid.Children.Add(mira);
 
             Grid.SetColumn(mira, posX);
             Grid.SetRow(mira, posY);
@@ -186,24 +226,24 @@ public partial class PageGuia : ContentPage
             if (Grid.GetColumn(mira) == 5 && Grid.GetRow(mira) == 3)
             {
                 invertido = true;
-                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosInvertidos.IsVisible = true;
+                controlos_invertidos.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_invertidos.IsVisible = false;
 
             }
             else if(Grid.GetColumn(mira) == 8 && Grid.GetRow(mira) == 3)
             {
                 invertido = true;
-                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosInvertidos.IsVisible = true;
+                controlos_invertidos.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_invertidos.IsVisible = false;
             }
             else if(Grid.GetColumn(mira) == 6 && Grid.GetRow(mira) == 9)
             {
                 invertido = true;
-                DisplayAlert("🔴 CONTROLOS INVERTIDOS!", "↑ agora é ↓\r\n↓ agora é ↑\r\n← agora é →\r\n→ agora é ←", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosInvertidos.IsVisible = true;
+                controlos_invertidos.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_invertidos.IsVisible = false;
             }
         }
         if (invertido == true)
@@ -211,29 +251,30 @@ public partial class PageGuia : ContentPage
             if (Grid.GetColumn(mira) == 4 && Grid.GetRow(mira) == 3)
             {
                 invertido = false;
-                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosCorretos.IsVisible = true;
+                controlos_normais.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_normais.IsVisible = false;
             }
             else if (Grid.GetColumn(mira) == 8 && Grid.GetRow(mira) == 2)
             {
                 invertido = false;
-                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosCorretos.IsVisible = true;
+                controlos_normais.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_normais.IsVisible = false;
             }
             else if (Grid.GetColumn(mira) == 7 && Grid.GetRow(mira) == 9)
             {
                 invertido = false;
-                DisplayAlert("🟢 CONTROLOS CORRIGIDOS!", "A interferência desapareceu.\r\nOs teus comandos respondem corretamente.", "Ok");
-                //LabirintoView.Opacity = 0.4;
-                //ControlosCorretos.IsVisible = true;
+                controlos_normais.IsVisible = true;
+                await Task.Delay(5000);
+                controlos_normais.IsVisible = false;
             }
         }
         if (Grid.GetColumn(mira) == 10 && Grid.GetRow(mira) == 5 && entrou_na_porta == false)
         {
             esta_na_porta = true;
             entrou_na_porta = true;
+            porta_resolvida = true;
             await Navigation.PushAsync(new PageGuiaPorta(codigo));
         }
         if (Grid.GetColumn(mira) == 14 && Grid.GetRow(mira) == 1 && passou_interferencia == false)
@@ -267,7 +308,7 @@ public partial class PageGuia : ContentPage
                 Morse.IsVisible = false;
                 timer.Stop();
                 int tempo_restante = 180 - tempo;
-                string tempo_restante_str = tempo_restante.ToString(@"mm\:ss");
+                string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                 await Navigation.PushAsync(new PageFim(tempo_restante_str));
                 break;
             }
@@ -321,6 +362,7 @@ public partial class PageGuia : ContentPage
 
     private void btn_fechar(object sender, EventArgs e)
     {
+        click_som.Play();
         ControlosCorretos.IsVisible = false;
         ControlosInvertidos.IsVisible = false;
         LabirintoView.Opacity = 1;
@@ -328,8 +370,14 @@ public partial class PageGuia : ContentPage
 
     private void btn_fechar2(object sender, EventArgs e)
     {
+        click_som.Play();
         ControlosCorretos.IsVisible = false;
         ControlosInvertidos.IsVisible = false;
         LabirintoView.Opacity = 1;
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return true;
     }
 }

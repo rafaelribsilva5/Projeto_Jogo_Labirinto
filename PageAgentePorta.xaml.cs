@@ -229,15 +229,23 @@ public partial class PageAgentePorta : ContentPage
     {
         if (txt_CodigoPorta.Text == codigo_porta.ToString())
         {
-            await DisplayAlert("Sucesso", "Código correto! A porta se abriu.", "OK");
-            await Task.Delay(1000);
+            codigo_correto.IsVisible = true;
+            await Task.Delay(3000);
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo}};
             var resposta = await _supabase.Client!.Rpc("porta_resolucao", parametro);
             await Navigation.PopAsync();
         }
         else
         {
-            await DisplayAlert("Erro", "Código incorreto! Tente novamente.", "OK");
+            codigo_errado.IsVisible = true;
+            await Task.Delay(3000);
+            codigo_errado.IsVisible = false;
+            await Task.Delay(3000);
         }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return true;
     }
 }

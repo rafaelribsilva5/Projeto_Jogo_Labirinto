@@ -25,7 +25,8 @@ BackgroundColor="Black">
         </VerticalStackLayout>
 
 
-        <Grid>
+        <Grid x:Name="Tempo_final"
+              IsVisible="false">
             <VerticalStackLayout HorizontalOptions="Center"
                                  VerticalOptions="Center">
                 <HorizontalStackLayout>
@@ -64,6 +65,26 @@ BorderColor="#8AF3FE"
 HorizontalOptions="Center"
 Clicked="btn_Pagina_inicial_Clicked"/>
             </VerticalStackLayout>
+        </Grid>
+
+
+        <Grid x:Name="botao"
+BackgroundColor="Transparent">
+
+            <Button x:Name="btn_Avancar"
+      Text="Avançar"
+      FontFamily="Archive"
+      FontSize="16"
+      FontAttributes="None"
+      TextColor="White"
+      CornerRadius="14"
+      BackgroundColor="Transparent"
+      BorderWidth="2"
+      Margin="0,0,20,20"
+      BorderColor="#8AF3FE"
+      HorizontalOptions="End"
+      VerticalOptions="End"
+      Clicked="btn_Avancar_Clicked"/>
         </Grid>
     </Grid>
 </ContentPage>

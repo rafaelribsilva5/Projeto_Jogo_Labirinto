@@ -310,6 +310,7 @@ FontFamily="Archive"
 TextColor="Green"
 FontSize="20"
 FontAttributes="Bold"
+Margin="0, 10, 0, 0"
 VerticalTextAlignment="Start"
 HorizontalOptions="Start"
 VerticalOptions="Start"/>
@@ -387,6 +388,106 @@ Clicked="btn_Pagina_inicial_Clicked"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
+        </Grid>
+
+
+        <Grid x:Name="controlos_invertidos"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="🔴 CONTROLOS INVERTIDOS!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                    <Label
+    Text="↑ agora é ↓&#x0a;↓ agora é ↑&#x0a;← agora é →&#x0a;→ agora é ←"
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+
+        <Grid x:Name="controlos_normais"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="🟢 CONTROLOS CORRIGIDOS!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                    <Label
+    Text="A interferência desapareceu.&#x0a;Os teus comandos respondem corretamente."
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+
+        <Grid x:Name="botao"
+      BackgroundColor="Transparent">
+
+            <Button x:Name="btn_Avancar"
+            Text="Avançar"
+            FontFamily="Archive"
+            FontSize="16"
+            FontAttributes="None"
+            TextColor="White"
+            CornerRadius="14"
+            BackgroundColor="Transparent"
+            BorderWidth="2"
+            Margin="0,0,20,20"
+            BorderColor="#8AF3FE"
+            HorizontalOptions="End"
+            VerticalOptions="End"
+            Clicked="btn_Avancar_Clicked"/>
         </Grid>
     </Grid>
 </ContentPage>

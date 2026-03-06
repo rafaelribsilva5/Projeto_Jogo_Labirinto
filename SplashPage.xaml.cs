@@ -5,18 +5,17 @@ public partial class SplashPage : ContentPage
     public SplashPage()
     {
         InitializeComponent();
-        mainpage();
     }
-    private async void mainpage()
+    protected override async void OnAppearing()
     {
+        base.OnAppearing();
+
+        DeviceDisplay.Current.KeepScreenOn = true;
+
         await Task.Delay(5000);
         SplashGrid.Opacity = 0;
+        var main = new NavigationPage(new MainPage());
         await Task.Delay(2500);
-        Application.Current.MainPage = new NavigationPage(new MainPage());
-        await Navigation.PushAsync(new MainPage());
-    }
-    private void OnAppearing(object sender, EventArgs e)
-    {
-        mainpage();
+        Application.Current.MainPage = main;
     }
 }

@@ -110,21 +110,62 @@ BackgroundColor="Transparent"/>
    Text="Começa em "/>
         </Grid>
 
-        <Grid x:Name="Morse_incorreto"
-      IsVisible="False">
-            <Button x:Name="lbl_Morse_incorreto"
-            IsEnabled="False"
-   TextColor="White"
-   FontSize="Small"
-   HorizontalOptions="Center"
-   VerticalOptions="Center"
-   WidthRequest="400"
-   BackgroundColor="Transparent"
-   Text="Saída não encontrada! Vamos recomeçar."
-   CornerRadius="16"
-   BorderWidth="2"
-   Padding="16"
-   BorderColor="#8AF3FE"/>
+        <Grid x:Name="morse_errado"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="OH NÃO!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                    <Label
+    Text="O código de morse inserido está incorreto. Muita ATENÇÃO, Vamos recomeçar!"
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="botao"
+              BackgroundColor="Transparent">
+
+            <Button x:Name="btn_Avancar"
+                    Text="Avançar"
+                    FontFamily="Archive"
+                    FontSize="16"
+                    FontAttributes="None"
+                    TextColor="White"
+                    CornerRadius="14"
+                    BackgroundColor="Transparent"
+                    BorderWidth="2"
+                    Margin="0,0,20,20"
+                    BorderColor="#8AF3FE"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Clicked="btn_Avancar_Clicked"/>
         </Grid>
     </Grid>
 </ContentPage>
