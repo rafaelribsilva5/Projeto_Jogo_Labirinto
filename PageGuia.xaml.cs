@@ -13,6 +13,10 @@ public partial class PageGuia : ContentPage
     private readonly SupabaseService _supabase = new SupabaseService();
     private Task _supabaseInitializationTask = null!;
 
+    int tempo = 180;
+    IDispatcherTimer timer;
+    TimeSpan t;
+
     public PageGuia(string codigoo)
 	{
 		InitializeComponent();
@@ -73,7 +77,73 @@ public partial class PageGuia : ContentPage
         atualizar_pos();
     }
 
-	private void Video1_MediaEnded(object? sender, EventArgs e)
+    private void IniciarTimer()
+    {
+        timer = Dispatcher.CreateTimer();
+        timer.Interval = TimeSpan.FromSeconds(1);
+        t = TimeSpan.FromSeconds(tempo);
+
+        timer.Tick += (s, e) =>
+        {
+            if (tempo > 0)
+            {
+                tempo--;
+
+                t = TimeSpan.FromSeconds(tempo);
+                lbl_Tempo_execucao.Text = t.ToString(@"mm\:ss");
+                if(tempo >= 120)
+                {
+                    lbl_Tempo_execucao.TextColor = Colors.Green;
+                }
+                else if (tempo >= 60)
+                {
+                    lbl_Tempo_execucao.TextColor = Colors.Yellow;
+                }
+                else if (tempo >= 0)
+                {
+                    lbl_Tempo_execucao.TextColor = Colors.Red;
+                }
+            }
+            else
+            {
+                timer.Stop();
+                labirinto = false;
+                invertido = false;
+                esta_na_porta = false;
+                entrou_na_porta = false;
+                interferencia = false;
+                total_agitar = 0;
+                passou_interferencia = false;
+                esta_no_morse = false;
+
+                tempo = 180;
+                Tempo_acabou.IsVisible = true;
+            }
+        };
+        timer.Start();
+    }
+
+    private void btn_Recomecar_Clicked (object? sender, EventArgs e)
+    {
+        Grid.SetColumn(mira, 1);
+        Grid.SetRow(mira, 6);
+
+        lbl_Tempo_execucao.Text = TimeSpan.FromSeconds(tempo).ToString(@"mm\:ss");
+        lbl_Tempo_execucao.TextColor = Colors.Green;
+        Tempo_acabou.IsVisible = false;
+
+        IniciarTimer();
+        atualizar_pos();
+    }
+    private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
+    {
+        await Navigation.PopToRootAsync();
+
+        //falta volta pagina inicial no agente
+    }
+
+
+    private void Video1_MediaEnded(object? sender, EventArgs e)
 	{
         VideoView.IsVisible = false;
         VideoView.Opacity = 0;
@@ -82,6 +152,8 @@ public partial class PageGuia : ContentPage
         video1.Stop();
         video1.Source = null;
         video1.Handler?.DisconnectHandler();
+        IniciarTimer();
+        Tempo.IsVisible = true;
     }
 
     private async Task atualizar_pos()
@@ -185,13 +257,18 @@ public partial class PageGuia : ContentPage
         bool morse_feito = false;
         while (morse_feito == false)
         {
-            var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            var parametro = new Dictionary<string, object?> {{ "p_codigo", codigo }};
             var resposta = await _supabase.Client!.Rpc("verificar_morse", parametro);
             if (resposta.Content == "true")
             {
+                var parametros = new Dictionary<string, object?> { { "p_codigo", codigo }, {"p_tempo_restante", tempo} };
+                await _supabase.Client!.Rpc("atualizar_tempo", parametros);
                 morse_feito = true;
-                await DisplayAlert("bf", "bef", "bef");
                 Morse.IsVisible = false;
+                timer.Stop();
+                int tempo_restante = 180 - tempo;
+                string tempo_restante_str = tempo_restante.ToString(@"mm\:ss");
+                await Navigation.PushAsync(new PageFim(tempo_restante_str));
                 break;
             }
             else
@@ -255,6 +332,4 @@ public partial class PageGuia : ContentPage
         ControlosInvertidos.IsVisible = false;
         LabirintoView.Opacity = 1;
     }
-
-
 }

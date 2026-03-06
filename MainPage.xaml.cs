@@ -260,6 +260,7 @@ namespace Projeto_Jogo_Labirinto
                 if (funcao == "Guia")
                 {
                     lbl_funcao.Text = "Agente";
+                    minhaFuncao = "Agente";
                     await Task.Delay(2000);
                     IniciarJogo();
                 }
@@ -267,11 +268,10 @@ namespace Projeto_Jogo_Labirinto
                 else if (funcao == "Agente")
                 {
                     lbl_funcao.Text = "Guia";
+                    minhaFuncao = "Guia";
                     await Task.Delay(2000);
                     IniciarJogo();
                 }
-
-                minhaFuncao = funcao == "Guia" ? "Agente" : "Guia";
                 //await EntrarModoEsperaAsync();
             }
             catch (Exception ex)

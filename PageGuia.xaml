@@ -231,7 +231,7 @@ HorizontalOptions="Center"/>
                       HorizontalOptions="Fill">
                         <VerticalStackLayout Grid.Column ="0">
 
-                        <Label Text="ESQUERDA → 🔦🟡🟡🟡  (pisca longo uma vez)"
+                            <Label Text="ESQUERDA → 🔦🟡🟡🟡  (pisca longo uma vez)"
 FontSize="16"
 TextColor="White"
 HorizontalTextAlignment="Center"
@@ -265,8 +265,8 @@ HorizontalOptions="Start"/>
 
                         </VerticalStackLayout>
 
-                    <Image Source="lanterna_morse.png"
-   HeightRequest="120"
+                        <Image Source="lanterna_morse.png"
+   HeightRequest="100"
    Grid.Column="1"
    Margin="10, 0, 0, 0"
    HorizontalOptions="Center" 
@@ -284,6 +284,107 @@ HorizontalOptions="Start"/>
    VerticalOptions="Start"/>
 
 
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+
+        <HorizontalStackLayout x:Name ="Tempo"
+                               IsVisible="False"
+                               HorizontalOptions="Start"
+                               VerticalOptions="Start">
+            <Label x:Name="lbl_texto"
+                   Text="TEMPO RESTANTE: "
+                   HorizontalTextAlignment="Start"
+FontFamily="Archive"
+TextColor="White"
+FontSize="20"
+VerticalTextAlignment="Start"
+Margin="10, 10, 0, 0"
+HorizontalOptions="Start"
+VerticalOptions="Start"/>
+            <Label x:Name="lbl_Tempo_execucao"
+                           Text=""
+                   HorizontalTextAlignment="Start"
+FontFamily="Archive"
+TextColor="Green"
+FontSize="20"
+FontAttributes="Bold"
+VerticalTextAlignment="Start"
+HorizontalOptions="Start"
+VerticalOptions="Start"/>
+
+        </HorizontalStackLayout>
+
+
+
+
+
+
+        <Grid x:Name="Tempo_acabou"
+      BackgroundColor="Transparent"
+    IsVisible="False">
+
+            <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+            <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="Oh NÃO, DADOS DO SERVIDOR APAGADOS!"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="#8AF3FE"
+                       FontFamily="Archive"
+                       HorizontalTextAlignment="Center"/>
+                    
+                    <Label Text="Infelizmente, o tempo para recuperar os dados acabou. Vamos tentar concluir um novo protocolo?"
+   FontSize="16"
+   Grid.Column="0"
+   TextColor="White"
+   Padding="20"
+   HorizontalTextAlignment="Center"
+   VerticalOptions="Center"
+   HorizontalOptions="Center"/>
+                    <HorizontalStackLayout HorizontalOptions="Center">
+                        <Button x:Name="btn_Recomecar"
+Text="Recomeçar"
+FontFamily="Archive"
+FontSize="16"
+FontAttributes="None"
+TextColor="White"
+CornerRadius="14"
+BackgroundColor="Transparent"
+BorderWidth="2"
+Margin="0,10,5,0"
+BorderColor="#8AF3FE"
+HorizontalOptions="Center"
+Clicked="btn_Recomecar_Clicked"/>
+                        <Button x:Name="btn_Pagina_inicial"
+Text="Página Inicial"
+FontFamily="Archive"
+FontSize="16"
+FontAttributes="None"
+TextColor="White"
+CornerRadius="14"
+BackgroundColor="Transparent"
+BorderWidth="2"
+Margin="0,10,2,0"
+BorderColor="#8AF3FE"
+HorizontalOptions="Center"
+Clicked="btn_Pagina_inicial_Clicked"/>
+
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
         </Grid>

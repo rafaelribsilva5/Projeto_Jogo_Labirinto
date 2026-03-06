@@ -5,7 +5,8 @@ namespace Projeto_Jogo_Labirinto
         public App()
         {
             InitializeComponent();
-            MainPage = new AppShell();
+
+            MainPage = new NavigationPage(new SplashPage());
         }
     }
 }

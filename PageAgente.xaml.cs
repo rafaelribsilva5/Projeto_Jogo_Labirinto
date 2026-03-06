@@ -20,7 +20,7 @@ public partial class PageAgente : ContentPage
     bool invertido = false;
     bool esta_na_porta = false;
     int total_agitar = 0;
-    string[] morse = { "--", ".", "--", "--", ".", ".", "-", "..", "--", "--", "..", "-", "..", "--"};
+    string[] morse = { "--", ".", "--", "--", ".", ".", "-", "..", "--", "..", "-", "--"};
     int[] correcao_morse = new int[4];
     bool esta_no_morse = false;
     public PageAgente(string codigoo)
@@ -318,6 +318,7 @@ public partial class PageAgente : ContentPage
         }
         if (posX == 16 && posY == 9)
         {
+            await Task.Delay(15000);
             mostrar_morse();
             esta_no_morse = true;
         }
@@ -395,7 +396,8 @@ public partial class PageAgente : ContentPage
 
     private async Task mostrar_morse()
     {
-        await Task.Delay(10000);
+        var beep_morse = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+        await Task.Delay(4000);
         Contagem.IsVisible = true;
         lbl_Contagem.Text = "COMEÇA EM";
         await Task.Delay(1000);
@@ -410,19 +412,19 @@ public partial class PageAgente : ContentPage
         {
             if (simbolo == "--")
             {
-                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1300);
+                await Task.Delay(1500);
                 await Flashlight.TurnOffAsync();
                 await Task.Delay(300);
-                player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1300);
+                await Task.Delay(1500);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == ".")
             {
-                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300);
                 await Flashlight.TurnOffAsync();
@@ -430,36 +432,54 @@ public partial class PageAgente : ContentPage
                 
             else if (simbolo == "..")
             {
-                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300);
                 await Flashlight.TurnOffAsync();
                 await Task.Delay(300);
-                player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == "-")
             {
-                await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3");
+                beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1300);
+                await Task.Delay(1500);
                 await Flashlight.TurnOffAsync();
             }
-            await Task.Delay(2000);
+            await Task.Delay(2300);
         }
-        await Task.Delay(2000);
+        await Task.Delay(2300);
         string mensagem_morse = "";
         for (int i = 0; i < 4; i++)
         {
             mensagem_morse += correcao_morse[i].ToString();
         }
-        if (mensagem_morse == "2363")
+        if (mensagem_morse == "2352")
         {
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
             await _supabase.Client!.Rpc("morse_resolvido", parametro);
-            await DisplayAlert("Morse", "Código Morse correto! Você pode continuar o labirinto.", "OK");
+            int tempo_restante = 900;
+            while (tempo_restante == 900)
+            {
+                var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
+                tempo_restante = int.Parse(resposta.Content);
+                
+                if (tempo_restante != 900)
+                {
+                    tempo_restante = 180 - tempo_restante;
+                    string tempo_restante_str = tempo_restante.ToString(@"mm\:ss");
+                    await Navigation.PushAsync(new PageFim(tempo_restante_str));
+                }
+
+                else
+                {
+                    await Task.Delay(400);
+                }
+            }
         }
         else
         {

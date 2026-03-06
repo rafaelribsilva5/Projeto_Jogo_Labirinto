@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Projeto_Jogo_Labirinto.SplashPage"
+             Title="SplashPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundImageSource="splash_image.png">
+    <Grid
+        x:Name="SplashGrid"
+        BackgroundColor="Black"
+        Opacity="1">
+        <Image Source="logo_completoo.png"
+               Aspect="AspectFit"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               HeightRequest="300"/>
+    </Grid>
+</ContentPage>

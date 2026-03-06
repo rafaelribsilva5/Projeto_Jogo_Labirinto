@@ -12,9 +12,11 @@
                              IsVisible="True"
                              Opacity="1">
             <Grid 
+                BackgroundColor="Transparent"
                 ColumnDefinitions="*, *">
-                <Image Source="logo_completo.png"
+                <Image Source="logo_completoo.png"
                        Grid.Column="0"
+                       BackgroundColor="Transparent"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        Margin="16,16,16,16"/>
