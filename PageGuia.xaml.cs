@@ -14,6 +14,7 @@ public partial class PageGuia : ContentPage
     private readonly SupabaseService _supabase = new SupabaseService();
     private Task _supabaseInitializationTask = null!;
     private CancellationTokenSource _gameCancellation;
+    private CancellationTokenSource _heartbeatCancellation;
 
     private IAudioPlayer click_som;
     private IAudioManager _audioManager = AudioManager.Current;
@@ -53,6 +54,12 @@ public partial class PageGuia : ContentPage
 		base.OnAppearing();
 
         _gameCancellation = new CancellationTokenSource();
+        _heartbeatCancellation?.Cancel();
+        _heartbeatCancellation = new CancellationTokenSource();
+        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+        await _supabase.Client!.Rpc("ultima_vez_guia", parametro);
+        _ = Atulaizar_conexao(_heartbeatCancellation.Token);
+        _ = Verificar_agente_online(_heartbeatCancellation.Token);
 
         try
         {
@@ -111,11 +118,7 @@ public partial class PageGuia : ContentPage
         AnimarEscala();
 
         labirinto = true;
-        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-        await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
         _ = atualizar_pos(_gameCancellation.Token);
-        _ = Verificar_agente_online(_gameCancellation.Token);
-        _ = Atulaizar_conexao(_gameCancellation.Token);
     }
 
     private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
@@ -131,6 +134,7 @@ public partial class PageGuia : ContentPage
                 {
                     sem_net.IsVisible = true;
                     _gameCancellation?.Cancel();
+                    _heartbeatCancellation?.Cancel();
                     await Task.Delay(10000);
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
@@ -142,6 +146,7 @@ public partial class PageGuia : ContentPage
                         timer?.Stop();
                         IniciarTimer();
 
+                        _heartbeatCancellation = new CancellationTokenSource();
                         _gameCancellation = new CancellationTokenSource();
                         _ = atualizar_pos(_gameCancellation.Token);
                         _ = verificar_morse(_gameCancellation.Token);
@@ -176,8 +181,8 @@ public partial class PageGuia : ContentPage
             {
                 var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
                 var resposta = await _supabase.Client!.Rpc("agente_vivo", parametro);
-                bool vivo = bool.Parse(resposta.Content);
-                if (vivo == false)
+                if (resposta?.Content == null) { }
+                else if (resposta.Content.Trim() == "false")
                 {
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
@@ -316,6 +321,7 @@ public partial class PageGuia : ContentPage
 
         timer?.Stop();
         _gameCancellation?.Cancel();
+        _heartbeatCancellation?.Cancel();
 
         var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 1 }};
         await _supabase.Client!.Rpc("atualizar_digito", parametros);
@@ -519,6 +525,7 @@ public partial class PageGuia : ContentPage
                     timer.Stop();
                     int tempo_restante = 180 - tempo;
                     string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
+                    _heartbeatCancellation?.Cancel();
                     await Navigation.PushAsync(new PageFim(tempo_restante_str));
                     var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                     await _supabase.Client!.Rpc("eliminar_sala", parametroSala);

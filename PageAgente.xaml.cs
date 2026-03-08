@@ -14,6 +14,7 @@ public partial class PageAgente : ContentPage
     private IAudioPlayer click_som;
     private IAudioManager _audioManager = AudioManager.Current;
     private CancellationTokenSource _gameCancellation;
+    private CancellationTokenSource _heartbeatCancellation;
 
     string codigo = "";
     int digito = 0;
@@ -75,6 +76,12 @@ public partial class PageAgente : ContentPage
 		base.OnAppearing();
 
         _gameCancellation = new CancellationTokenSource();
+        _heartbeatCancellation?.Cancel();
+        _heartbeatCancellation = new CancellationTokenSource();
+        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+        await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
+        _ = Atulaizar_conexao(_heartbeatCancellation.Token);
+        _ = Verificar_guia_online(_heartbeatCancellation.Token);
 
         try
         {
@@ -88,10 +95,6 @@ public partial class PageAgente : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"[PageAgente] Erro ao carregar áudio: {ex.Message}");
         }
-        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-        await _supabase.Client!.Rpc("ultima_vez_guia", parametro);
-        _ = Verificar_guia_online(_gameCancellation.Token);
-        _ = Atulaizar_conexao(_gameCancellation.Token);
     }
 
 	private async void Video1_MediaEnded(object? sender, EventArgs e)
@@ -129,6 +132,7 @@ public partial class PageAgente : ContentPage
                 {
                     sem_net.IsVisible = true;
                     _gameCancellation?.Cancel();
+                    _heartbeatCancellation?.Cancel();
                     await Task.Delay(10000);
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
@@ -138,6 +142,7 @@ public partial class PageAgente : ContentPage
                     {
                         sem_net.IsVisible = false;
 
+                        _heartbeatCancellation = new CancellationTokenSource();
                         _gameCancellation = new CancellationTokenSource();
                         _ = verificar_digito(_gameCancellation.Token);
                         _ =  Verificar_guia_online(_gameCancellation.Token);
@@ -170,8 +175,8 @@ public partial class PageAgente : ContentPage
             {
                 var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
                 var resposta = await _supabase.Client!.Rpc("guia_vivo", parametro);
-                bool vivo = bool.Parse(resposta.Content);
-                if (vivo == false)
+                if (resposta?.Content == null) { }
+                else if (resposta.Content.Trim() == "false")
                 {
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
@@ -213,6 +218,10 @@ public partial class PageAgente : ContentPage
             catch (OperationCanceledException)
             {
                 return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] Atulaizar_conexao: {ex.Message}");
             }
             try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
         }
@@ -460,7 +469,7 @@ public partial class PageAgente : ContentPage
             Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
         }
-        if (posX == 16 && posY == 9)
+        if (posX == 16 && posY == 9 && esta_no_morse == false)
         {
             esta_no_morse = true;
             await Task.Delay(15000);
@@ -702,6 +711,7 @@ public partial class PageAgente : ContentPage
                         {
                             tempo_restante = 180 - tempo_restante;
                             string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
+                            _heartbeatCancellation?.Cancel();
                             await Navigation.PushAsync(new PageFim(tempo_restante_str));
                             var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                             await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
