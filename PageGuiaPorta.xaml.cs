@@ -38,7 +38,6 @@ public partial class PageGuiaPorta : ContentPage
                 porta_resolvida = true;
                 await Navigation.PopAsync();
                 break;
-                
             }
             else
                 await Task.Delay(500);

@@ -3,6 +3,7 @@ using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Networking;
 using Plugin.Maui.Audio;
 using Projeto_Jogo_Labirinto.Services;
+using Microsoft.Maui.Networking;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -14,6 +15,7 @@ public partial class PageAgente : ContentPage
 {
     private IAudioPlayer click_som;
     private IAudioManager _audioManager = AudioManager.Current;
+    private CancellationTokenSource _gameCancellation;
 
     string codigo = "";
     int digito = 0;
@@ -34,6 +36,8 @@ public partial class PageAgente : ContentPage
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
         _audioManager = AudioManager.Current;
+
+        Connectivity.Current.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
 
     private readonly SupabaseService _supabase = new SupabaseService();
@@ -68,6 +72,8 @@ public partial class PageAgente : ContentPage
 	{
 		base.OnAppearing();
 
+        _gameCancellation = new CancellationTokenSource();
+
         if (click_som == null)
         {
             var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
@@ -81,7 +87,8 @@ public partial class PageAgente : ContentPage
         video1.Source = null;
         video1.Handler?.DisconnectHandler();
         MostrarLabirinto();
-        await verificar_digito();
+        botao.IsVisible = false;
+        await verificar_digito(_gameCancellation.Token);
     }
 
     private void btn_Avancar_Clicked(object? sender, EventArgs e)
@@ -96,6 +103,31 @@ public partial class PageAgente : ContentPage
 		System.Diagnostics.Debug.WriteLine($"[PageAgente] Vídeo falhou: {e?.ErrorMessage}");
 		MostrarLabirinto();
 	}
+
+
+private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess != NetworkAccess.Internet)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                sem_net.IsVisible = true;
+                await Task.Delay(10000);
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 3 } };
+                    await _supabase.Client!.Rpc("atualizar_digito", parametros);
+
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
+                else
+                {
+                    sem_net.IsVisible = false;
+                    return;
+                }
+            });
+        }
+    }
 
     private void MostrarLabirinto()
     {
@@ -285,7 +317,7 @@ public partial class PageAgente : ContentPage
     }
 
 
-    private async void analise()
+    private async Task analise()
     {
         if (invertido == false)
         {
@@ -341,13 +373,18 @@ public partial class PageAgente : ContentPage
         if (posX == 16 && posY == 9)
         {
             await Task.Delay(15000);
-            mostrar_morse();
+            await mostrar_morse(_gameCancellation.Token);
             esta_no_morse = true;
         }
     }
 
     private async void Accelerometer_ReadingChanged(object sender, AccelerometerChangedEventArgs e)
     {
+        if (_gameCancellation?.IsCancellationRequested == true)
+        {
+            return;
+        }
+
         var a = e.Reading.Acceleration;
 
         double aceleracao = Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
@@ -360,15 +397,24 @@ public partial class PageAgente : ContentPage
             Accelerometer.Stop();
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
             await _supabase.Client!.Rpc("telemovel_abanou", parametro);
-            await esperar_calibragem();
+            await esperar_calibragem(_gameCancellation.Token);
         }
     }
 
-    private async Task esperar_calibragem()
+    private async Task esperar_calibragem(CancellationToken token)
     {
         bool calibragem_feita = false;
         while (calibragem_feita == false)
         {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
             var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
             var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
             if (resposta.Content == "true")
@@ -382,7 +428,7 @@ public partial class PageAgente : ContentPage
                 break;
             }
             else
-                await Task.Delay(500);
+                await Task.Delay(500, token);
         }
     }
     private void mudar_controlos()
@@ -417,39 +463,56 @@ public partial class PageAgente : ContentPage
         }
     }
 
-    private async Task mostrar_morse()
+    private async Task mostrar_morse(CancellationToken token)
     {
         var beep_morse = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
-        await Task.Delay(4000);
+        try
+        {
+            token.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        await Task.Delay(4000, token);
         Contagem.IsVisible = true;
         lbl_Contagem.Text = "COMEÇA EM";
-        await Task.Delay(1000);
+        await Task.Delay(1000, token);
         lbl_Contagem.Text = "3";
-        await Task.Delay(1000);
+        await Task.Delay(1000, token);
         lbl_Contagem.Text = "2";
-        await Task.Delay(1000);
+        await Task.Delay(1000, token);
         lbl_Contagem.Text = "1";
-        await Task.Delay(1000);
+        await Task.Delay(1000, token);
         Contagem.IsVisible = false;
         foreach (string simbolo in morse)
         {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
             if (simbolo == "--")
             {
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1500);
+                await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
-                await Task.Delay(300);
+                await Task.Delay(300, token);
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1500);
+                await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == ".")
             {
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(300);
+                await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
             }
                 
@@ -457,25 +520,33 @@ public partial class PageAgente : ContentPage
             {
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(300);
+                await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
-                await Task.Delay(300);
+                await Task.Delay(300, token);
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(300);
+                await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == "-")
             {
                 beep_morse.Play();
                 await Flashlight.TurnOnAsync();
-                await Task.Delay(1500);
+                await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
             }
-            await Task.Delay(2300);
+            await Task.Delay(2300, token);
         }
-        await Task.Delay(2300);
+        await Task.Delay(2300, token);
         string mensagem_morse = "";
+        try
+        {
+            token.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
         for (int i = 0; i < 4; i++)
         {
             mensagem_morse += correcao_morse[i].ToString();
@@ -487,6 +558,15 @@ public partial class PageAgente : ContentPage
             int tempo_restante = 900;
             while (tempo_restante == 900)
             {
+                try
+                {
+                    token.ThrowIfCancellationRequested();
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
                 var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
                 tempo_restante = int.Parse(resposta.Content);
@@ -496,29 +576,41 @@ public partial class PageAgente : ContentPage
                     tempo_restante = 180 - tempo_restante;
                     string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                     await Navigation.PushAsync(new PageFim(tempo_restante_str));
+                    var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                    await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                    break;
                 }
 
                 else
                 {
-                    await Task.Delay(400);
+                    await Task.Delay(400, token);
                 }
             }
         }
         else
         {
             morse_errado.IsVisible = true;
-            await Task.Delay(2500);
+            await Task.Delay(2500, token);
             morse_errado.IsVisible = false;
             correcao_morse = new int[4];
-            await mostrar_morse();
+            await mostrar_morse(_gameCancellation.Token);
         }
     }
 
 
-    private async Task verificar_digito()
+    private async Task verificar_digito(CancellationToken token)
     {
         while (true)
         {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
             var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
             var resposta = await _supabase.Client!.Rpc("qual_digito", parametro);
 
@@ -526,7 +618,7 @@ public partial class PageAgente : ContentPage
 
             analise2();
 
-            await Task.Delay(300);
+            await Task.Delay(300, token);
         }
     }
 
@@ -548,7 +640,14 @@ public partial class PageAgente : ContentPage
             btn_cima.Clicked -= BtnCima_Clicked;
             btn_esquerda.Clicked -= BtnEsquerda_Clicked;
             btn_direita.Clicked -= BtnDireita_Clicked;
-            mudar_controlos();
+            btn_baixo.Clicked += BtnBaixo_Clicked;
+            btn_cima.Clicked += BtnCima_Clicked;
+            btn_esquerda.Clicked += BtnEsquerda_Clicked;
+            btn_direita.Clicked += BtnDireita_Clicked;
+            /*Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
+            Accelerometer.Stop();
+            _gameCancellation?.Cancel();
+            _gameCancellation = new CancellationTokenSource();*/
 
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
             try
@@ -559,8 +658,10 @@ public partial class PageAgente : ContentPage
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+            await Navigation.PushAsync(new PageAgente(codigo));
+            Navigation.RemovePage(this);
         }
-        if(digito == 2)
+        if (digito == 2)
         {
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
             try
@@ -573,11 +674,34 @@ public partial class PageAgente : ContentPage
             }
 
             Application.Current.MainPage = new NavigationPage(new MainPage());
+
+            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+        }
+        if (digito == 3)
+        {
+            parceiro_sem_net.IsVisible = true;
+            await Task.Delay(2000);
+            Application.Current.MainPage = new NavigationPage(new MainPage());
+            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
         }
     }
 
     protected override bool OnBackButtonPressed()
     {
         return true;
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        _gameCancellation?.Cancel();
+
+        Accelerometer.Stop();
+        Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
+
+        Connectivity.Current.ConnectivityChanged -= Connectivity_ConnectivityChanged;
     }
 }

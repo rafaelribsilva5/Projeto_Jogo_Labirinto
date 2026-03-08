@@ -5,14 +5,31 @@
              Title="SplashPage"
              NavigationPage.HasNavigationBar="False"
              BackgroundImageSource="splash_image.png">
-    <Grid
+    <Grid>
+        <Grid
         x:Name="SplashGrid"
         BackgroundColor="Black"
         Opacity="1">
-        <Image Source="logo_completoo.png"
+            <Image Source="logo_completoo.png"
                Aspect="AspectFit"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                HeightRequest="300"/>
+        </Grid>
+
+
+        <Grid
+x:Name="Desenvolvido"
+BackgroundColor="Transparent"
+Opacity="1"
+IsVisible="false">
+            <Label Text="Rafael Silva • 2026"
+    HorizontalOptions="Center"
+    VerticalOptions="End"
+    Margin="0,0,0,20"
+    TextColor="White"
+    FontSize="Medium"
+   FontFamily="Archive"/>
+        </Grid>
     </Grid>
 </ContentPage>

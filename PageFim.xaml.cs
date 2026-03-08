@@ -31,6 +31,7 @@ public partial class PageFim : ContentPage
         video2.Source = null;
         video2.Handler?.DisconnectHandler();
         Tempo_final.IsVisible = true;
+        botao.IsVisible = false;
     }
 
     private void btn_Avancar_Clicked(object? sender, EventArgs e)

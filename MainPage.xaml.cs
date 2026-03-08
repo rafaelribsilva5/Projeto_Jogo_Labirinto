@@ -113,8 +113,6 @@ namespace Projeto_Jogo_Labirinto
 
             var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
             await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-            var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
         }
 
         private void btn_Nao_Clicked(object sender, EventArgs e)
@@ -151,8 +149,6 @@ namespace Projeto_Jogo_Labirinto
 
             var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
             await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-            var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
 
         }
 
@@ -176,8 +172,6 @@ namespace Projeto_Jogo_Labirinto
             {
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
-                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
-                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
 
                 minhaFuncao = "Guia";
                 comecarJogo();
@@ -210,8 +204,6 @@ namespace Projeto_Jogo_Labirinto
             {
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
-                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
-                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
 
                 minhaFuncao = "Agente";
                 comecarJogo();
@@ -362,8 +354,6 @@ namespace Projeto_Jogo_Labirinto
                 {
                     lbl_funcaoProcurar.Text = "Guia";
                     minhaFuncao = "Guia";
-                    var parametroJogador = new Dictionary<string, object?> {{ "p_codigo", codigo }, { "p_funcao", "Guia" }};
-                    await _supabase.Client.Rpc("criar_jogador", parametroJogador);
                     await Task.Delay(2000);
                     IniciarJogo();
                 }
@@ -372,8 +362,6 @@ namespace Projeto_Jogo_Labirinto
                     lbl_funcaoProcurar.Text = "Agente";
                     minhaFuncao = "Agente";
                     lbl_Aguardar2.Text = "A aguardar pelo guia...";
-                    var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
-                    await _supabase.Client.Rpc("criar_jogador", parametroJogador);
                     comecarJogo();
                 }
             }
