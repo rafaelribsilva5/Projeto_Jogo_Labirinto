@@ -3,8 +3,6 @@ using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Networking;
 using Plugin.Maui.Audio;
 using Projeto_Jogo_Labirinto.Services;
-using Microsoft.Maui.Networking;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -36,7 +34,6 @@ public partial class PageAgente : ContentPage
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
         _audioManager = AudioManager.Current;
-
         Connectivity.Current.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
 
@@ -68,17 +65,33 @@ public partial class PageAgente : ContentPage
 
 
 
+    private void TocarClickSom()
+    {
+        try { click_som?.Play(); } catch { }
+    }
+
     protected override async void OnAppearing()
 	{
 		base.OnAppearing();
 
         _gameCancellation = new CancellationTokenSource();
 
-        if (click_som == null)
+        try
         {
-            var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
-            click_som = _audioManager.CreatePlayer(stream2);
+            if (click_som == null)
+            {
+                var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
+                click_som = _audioManager.CreatePlayer(stream2);
+            }
         }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PageAgente] Erro ao carregar áudio: {ex.Message}");
+        }
+        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+        await _supabase.Client!.Rpc("ultima_vez_guia", parametro);
+        _ = Verificar_guia_online(_gameCancellation.Token);
+        _ = Atulaizar_conexao(_gameCancellation.Token);
     }
 
 	private async void Video1_MediaEnded(object? sender, EventArgs e)
@@ -88,12 +101,12 @@ public partial class PageAgente : ContentPage
         video1.Handler?.DisconnectHandler();
         MostrarLabirinto();
         botao.IsVisible = false;
-        await verificar_digito(_gameCancellation.Token);
+        _ = verificar_digito(_gameCancellation.Token);
     }
 
     private void btn_Avancar_Clicked(object? sender, EventArgs e)
     {
-        click_som.Play();
+        TocarClickSom();
         botao.IsVisible = false;
         Video1_MediaEnded(sender, e);
     }
@@ -104,28 +117,104 @@ public partial class PageAgente : ContentPage
 		MostrarLabirinto();
 	}
 
-
-private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+    private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
     {
         if (e.NetworkAccess != NetworkAccess.Internet)
         {
+            Accelerometer.Stop();
+            Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                sem_net.IsVisible = true;
-                await Task.Delay(10000);
-                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                try
                 {
-                    var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 3 } };
-                    await _supabase.Client!.Rpc("atualizar_digito", parametros);
+                    sem_net.IsVisible = true;
+                    _gameCancellation?.Cancel();
+                    await Task.Delay(10000);
+                    if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                    {
+                        Application.Current.MainPage = new NavigationPage(new MainPage());
+                    }
+                    else
+                    {
+                        sem_net.IsVisible = false;
 
+                        _gameCancellation = new CancellationTokenSource();
+                        _ = verificar_digito(_gameCancellation.Token);
+                        _ =  Verificar_guia_online(_gameCancellation.Token);
+                        _ = Atulaizar_conexao(_gameCancellation.Token);
+                        Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
+                    }
+                }
+                catch (Exception ex)
+                {
                     Application.Current.MainPage = new NavigationPage(new MainPage());
                 }
-                else
-                {
-                    sem_net.IsVisible = false;
-                    return;
-                }
             });
+        }
+    }
+
+    private async Task Verificar_guia_online(CancellationToken token)
+    {
+        while (true)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("guia_vivo", parametro);
+                bool vivo = bool.Parse(resposta.Content);
+                if (vivo == false)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        parceiro_sem_net.IsVisible = true;
+                        await Task.Delay(2000);
+                        var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                        await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                        Application.Current.MainPage = new NavigationPage(new MainPage());
+                        return;
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+        }
+    }
+
+    private async Task Atulaizar_conexao(CancellationToken token)
+    {
+        while (true)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
         }
     }
 
@@ -168,7 +257,7 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
-            analise();
+            await analise();
         }
         else
         {
@@ -210,7 +299,7 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
-            analise();
+            await analise();
         }
         else
         {
@@ -252,7 +341,7 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
-            analise();
+            await analise();
         }
         else
         {
@@ -294,7 +383,7 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
-            analise();
+            await analise();
         }
         else
         {
@@ -368,13 +457,15 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             btn_esquerda.IsEnabled = false;
             btn_direita.IsEnabled = false;
             Accelerometer.Start(SensorSpeed.Game);
+            Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
         }
         if (posX == 16 && posY == 9)
         {
+            esta_no_morse = true;
             await Task.Delay(15000);
             await mostrar_morse(_gameCancellation.Token);
-            esta_no_morse = true;
+            
         }
     }
 
@@ -395,8 +486,15 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
         if (total_agitar >= 200)
         {
             Accelerometer.Stop();
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("telemovel_abanou", parametro);
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("telemovel_abanou", parametro);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] telemovel_abanou: {ex.Message}");
+            }
             await esperar_calibragem(_gameCancellation.Token);
         }
     }
@@ -415,20 +513,31 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
                 return;
             }
 
-            var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
-            if (resposta.Content == "true")
+            try
             {
-                calibragem_feita = true;
-                btn_baixo.IsEnabled = true;
-                btn_cima.IsEnabled = true;
-                btn_esquerda.IsEnabled = true;
-                btn_direita.IsEnabled = true;
-                agitar_resolvido = true;
-                break;
+                var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
+                if (resposta?.Content == "true")
+                {
+                    calibragem_feita = true;
+                    btn_baixo.IsEnabled = true;
+                    btn_cima.IsEnabled = true;
+                    btn_esquerda.IsEnabled = true;
+                    btn_direita.IsEnabled = true;
+                    agitar_resolvido = true;
+                    break;
+                }
             }
-            else
-                await Task.Delay(500, token);
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] esperar_calibragem: {ex.Message}");
+            }
+
+            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
         }
     }
     private void mudar_controlos()
@@ -465,7 +574,15 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
 
     private async Task mostrar_morse(CancellationToken token)
     {
-        var beep_morse = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+        IAudioPlayer? beep_morse = null;
+        try
+        {
+            beep_morse = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("beep_morse.mp3"));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PageAgente] beep_morse: {ex.Message}");
+        }
         try
         {
             token.ThrowIfCancellationRequested();
@@ -498,19 +615,19 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
 
             if (simbolo == "--")
             {
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
                 await Task.Delay(300, token);
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == ".")
             {
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
@@ -518,19 +635,19 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
                 
             else if (simbolo == "..")
             {
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
                 await Task.Delay(300, token);
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(300, token);
                 await Flashlight.TurnOffAsync();
             }
             else if (simbolo == "-")
             {
-                beep_morse.Play();
+                beep_morse?.Play();
                 await Flashlight.TurnOnAsync();
                 await Task.Delay(1500, token);
                 await Flashlight.TurnOffAsync();
@@ -553,8 +670,15 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
         }
         if (mensagem_morse == "2352")
         {
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
-            await _supabase.Client!.Rpc("morse_resolvido", parametro);
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
+                await _supabase.Client!.Rpc("morse_resolvido", parametro);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] morse_resolvido: {ex.Message}");
+            }
             int tempo_restante = 900;
             while (tempo_restante == 900)
             {
@@ -567,24 +691,34 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
                     return;
                 }
 
-                var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
-                tempo_restante = int.Parse(resposta.Content);
-                
-                if (tempo_restante != 900)
+                try
                 {
-                    tempo_restante = 180 - tempo_restante;
-                    string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
-                    await Navigation.PushAsync(new PageFim(tempo_restante_str));
-                    var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                    await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-                    break;
+                    var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                    var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
+                    if (resposta?.Content != null && int.TryParse(resposta.Content, out int t))
+                    {
+                        tempo_restante = t;
+                        if (tempo_restante != 900)
+                        {
+                            tempo_restante = 180 - tempo_restante;
+                            string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
+                            await Navigation.PushAsync(new PageFim(tempo_restante_str));
+                            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                            break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PageAgente] verificar_tempo: {ex.Message}");
                 }
 
-                else
-                {
-                    await Task.Delay(400, token);
-                }
+                try { await Task.Delay(400, token); } catch (OperationCanceledException) { return; }
             }
         }
         else
@@ -611,14 +745,24 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
                 return;
             }
 
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-            var resposta = await _supabase.Client!.Rpc("qual_digito", parametro);
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("qual_digito", parametro);
+                
+                digito = int.Parse(resposta.Content);
+                analise2();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] verificar_digito: {ex.Message}");
+            }
 
-            digito = int.Parse(resposta.Content);
-
-            analise2();
-
-            await Task.Delay(300, token);
+            try { await Task.Delay(300, token); } catch (OperationCanceledException) { return; }
         }
     }
 
@@ -644,47 +788,57 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
             btn_cima.Clicked += BtnCima_Clicked;
             btn_esquerda.Clicked += BtnEsquerda_Clicked;
             btn_direita.Clicked += BtnDireita_Clicked;
-            /*Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
-            Accelerometer.Stop();
+
             _gameCancellation?.Cancel();
-            _gameCancellation = new CancellationTokenSource();*/
 
             var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
-            try
-            {
-                await _supabase.Client!.Rpc("atualizar_digito", parametros);
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Erro", ex.Message, "OK");
-            }
+            await _supabase.Client!.Rpc("atualizar_digito", parametros);
+
+
             await Navigation.PushAsync(new PageAgente(codigo));
             Navigation.RemovePage(this);
         }
         if (digito == 2)
         {
-            var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
             try
             {
+                var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
                 await _supabase.Client!.Rpc("atualizar_digito", parametros);
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Erro", ex.Message, "OK");
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] analise2 digito 2: {ex.Message}");
             }
-
-            Application.Current.MainPage = new NavigationPage(new MainPage());
-
-            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            if (Application.Current != null)
+                Application.Current.MainPage = new NavigationPage(new MainPage());
+            try
+            {
+                var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] analise2 eliminar_sala: {ex.Message}");
+            }
         }
         if (digito == 3)
         {
             parceiro_sem_net.IsVisible = true;
             await Task.Delay(2000);
-            Application.Current.MainPage = new NavigationPage(new MainPage());
-            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            try
+            {
+                if (Application.Current != null)
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                if (_supabase.Client != null)
+                {
+                    var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                    await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageAgente] analise2 digito 3: {ex.Message}");
+            }
         }
     }
 
@@ -696,12 +850,9 @@ private void Connectivity_ConnectivityChanged(object sender, ConnectivityChanged
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-
         _gameCancellation?.Cancel();
-
         Accelerometer.Stop();
         Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
-
         Connectivity.Current.ConnectivityChanged -= Connectivity_ConnectivityChanged;
     }
 }

@@ -550,7 +550,7 @@ VerticalOptions="Center">
                 </Border.StrokeShape>
                 <VerticalStackLayout Spacing="15">
 
-                    <Label Text="LIGAÇÃO DO GUIA PERDIDA!"
+                    <Label Text="LIGAÇÃO DO AGENTE PERDIDA!"
    FontSize="20"
    FontAttributes="Bold"
    TextColor="#8AF3FE"

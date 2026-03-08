@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Networking;
 using Plugin.Maui.Audio;
@@ -29,7 +29,6 @@ public partial class PageGuia : ContentPage
         DeviceDisplay.Current.KeepScreenOn = true;
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
-
         Connectivity.Current.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
     bool labirinto = false;
@@ -55,16 +54,35 @@ public partial class PageGuia : ContentPage
 
         _gameCancellation = new CancellationTokenSource();
 
-        if (click_som == null)
+        try
         {
-            var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
-            click_som = _audioManager.CreatePlayer(stream2);
+            await _supabaseInitializationTask;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PageGuia] Erro ao inicializar Supabase: {ex.Message}");
+            await DisplayAlert("Erro", "Não foi possível conectar. Tente novamente.", "OK");
+            await Navigation.PopAsync();
+            return;
+        }
+
+        try
+        {
+            if (click_som == null)
+            {
+                var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
+                click_som = _audioManager.CreatePlayer(stream2);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PageGuia] Erro ao carregar áudio: {ex.Message}");
         }
 
         if (labirinto == true)
         {
             esta_na_porta = false;
-            await atualizar_pos(_gameCancellation.Token);
+            _ = atualizar_pos(_gameCancellation.Token);
             return;
         }
 
@@ -93,10 +111,123 @@ public partial class PageGuia : ContentPage
         AnimarEscala();
 
         labirinto = true;
-        await atualizar_pos(_gameCancellation.Token);
-        await verificar_digito(_gameCancellation.Token);
+        var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+        await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
+        _ = atualizar_pos(_gameCancellation.Token);
+        _ = Verificar_agente_online(_gameCancellation.Token);
+        _ = Atulaizar_conexao(_gameCancellation.Token);
     }
 
+    private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess != NetworkAccess.Internet)
+        {
+            timer?.Stop();
+            Accelerometer.Stop();
+            Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    sem_net.IsVisible = true;
+                    _gameCancellation?.Cancel();
+                    await Task.Delay(10000);
+                    if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                    {
+                        Application.Current.MainPage = new NavigationPage(new MainPage());
+                    }
+                    else
+                    {
+                        sem_net.IsVisible = false;
+                        timer?.Stop();
+                        IniciarTimer();
+
+                        _gameCancellation = new CancellationTokenSource();
+                        _ = atualizar_pos(_gameCancellation.Token);
+                        _ = verificar_morse(_gameCancellation.Token);
+                        _ = esperar_calibragem(_gameCancellation.Token);
+                        _ = Verificar_agente_online(_gameCancellation.Token);
+                        _ = Atulaizar_conexao(_gameCancellation.Token);
+                        Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
+                    }
+                }
+                catch (Exception ex)
+                {
+                     Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
+            });
+        }
+    }
+
+    private async Task Verificar_agente_online(CancellationToken token)
+    {
+        while (true)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("agente_vivo", parametro);
+                bool vivo = bool.Parse(resposta.Content);
+                if (vivo == false)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        parceiro_sem_net.IsVisible = true;
+                        await Task.Delay(2000);
+                        var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                        await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                        Application.Current.MainPage = new NavigationPage(new MainPage());
+                        return;
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+        }
+    }
+
+    private async Task Atulaizar_conexao(CancellationToken token)
+    {
+        while (true)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("ultima_vez_guia", parametro);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuia] atualizar_conexao: {ex.Message}");
+            }
+
+            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+        }
+    }
     private async void AnimarMira()
     {
         while (true)
@@ -118,66 +249,6 @@ public partial class PageGuia : ContentPage
         }
     }
 
-    private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
-    {
-        if (e.NetworkAccess != NetworkAccess.Internet)
-        {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                sem_net.IsVisible = true;
-                await Task.Delay(10000);
-                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
-                {
-                    var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 3 } };
-                    await _supabase.Client!.Rpc("atualizar_digito", parametros);
-
-                    Application.Current.MainPage = new NavigationPage(new MainPage());
-                }
-                else
-                {
-                    sem_net.IsVisible = false;
-                    return;
-                }
-            });
-        }
-    }
-
-    private async Task verificar_digito(CancellationToken token)
-    {
-        while (true)
-        {
-            try
-            {
-                token.ThrowIfCancellationRequested();
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-            var resposta = await _supabase.Client!.Rpc("qual_digito", parametro);
-
-            digito = int.Parse(resposta.Content);
-
-            analise2();
-
-            await Task.Delay(300, token);
-        }
-    }
-
-
-    private async void analise2()
-    {
-        if (digito == 3)
-        {
-            parceiro_sem_net.IsVisible = true;
-            await Task.Delay(2000);
-            Application.Current.MainPage = new NavigationPage(new MainPage());
-            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-        }
-    }
 
     private void IniciarTimer()
     {
@@ -234,52 +305,49 @@ public partial class PageGuia : ContentPage
         timer.Start();
     }
 
+    private void TocarClickSom()
+    {
+        click_som.Play();
+    }
+
     private async void btn_Recomecar_Clicked (object? sender, EventArgs e)
     {
-        click_som.Play(); 
+        TocarClickSom();
+
+        timer?.Stop();
+        _gameCancellation?.Cancel();
+
         var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 1 }};
-        try
-        {
-            await _supabase.Client!.Rpc("atualizar_digito", parametros);
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Erro", ex.Message, "OK");
-        }
+        await _supabase.Client!.Rpc("atualizar_digito", parametros);
+
         var parametross = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_posx", 1 }, { "p_posy", 6 } };
         await _supabase.Client!.Rpc("atualizar_posicao", parametross);
 
-        lbl_Tempo_execucao.Text = TimeSpan.FromSeconds(tempo).ToString(@"mm\:ss");
-        lbl_Tempo_execucao.TextColor = Colors.Green;
+        var parametrosss = new Dictionary<string, object> { { "p_codigo", codigo } };
+        await _supabase.Client!.Rpc("reset_estado_sala", parametrosss);
+
         Tempo_acabou.IsVisible = false;
-
-        IniciarTimer();
-        /*_gameCancellation?.Cancel();
-        _gameCancellation = new CancellationTokenSource();
-
-        await atualizar_pos(_gameCancellation.Token);
-        await verificar_digito(_gameCancellation.Token);*/
 
         await Navigation.PushAsync(new PageGuia(codigo));
         Navigation.RemovePage(this);
     }
     private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
     {
-        click_som.Play();
-        Application.Current.MainPage = new NavigationPage(new MainPage());
+        try { click_som?.Play(); } catch { }
+        Application.Current!.MainPage = new NavigationPage(new MainPage());
 
-        var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 2 } };
         try
         {
+            var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 2 } };
             await _supabase.Client!.Rpc("atualizar_digito", parametros);
+            await Task.Delay(500);
+            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Erro", ex.Message, "OK");
+            System.Diagnostics.Debug.WriteLine($"[PageGuia] Erro ao sair: {ex.Message}");
         }
-        await Task.Delay(500);
-        var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-        await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
     }
 
 
@@ -299,7 +367,7 @@ public partial class PageGuia : ContentPage
 
     private void btn_Avancar_Clicked(object? sender, EventArgs e)
     {
-        click_som.Play();
+        TocarClickSom();
         botao.IsVisible = false;
         Video1_MediaEnded(sender, e);
     }
@@ -317,21 +385,35 @@ public partial class PageGuia : ContentPage
                 return;
             }
 
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
-            var resposta = await _supabase.Client!.Rpc("obter_posicao", parametro);
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
+                var resposta = await _supabase.Client!.Rpc("obter_posicao", parametro);
 
-            var json = JsonDocument.Parse(resposta.Content);
-            var root = json.RootElement;
+                if (string.IsNullOrEmpty(resposta?.Content))
+                    continue;
 
-            int posX = root.GetProperty("posX").GetInt32();
-            int posY = root.GetProperty("posY").GetInt32();
+                var json = JsonDocument.Parse(resposta.Content);
+                var root = json.RootElement;
 
-            Grid.SetColumn(mira, posX);
-            Grid.SetRow(mira, posY);
+                int posX = root.GetProperty("posX").GetInt32();
+                int posY = root.GetProperty("posY").GetInt32();
 
-            analise();
+                Grid.SetColumn(mira, posX);
+                Grid.SetRow(mira, posY);
 
-            await Task.Delay(300, token);
+                analise();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuia] atualizar_pos: {ex.Message}");
+            }
+
+            try { await Task.Delay(300, token); } catch (OperationCanceledException) { return; }
         }
     }
 
@@ -424,24 +506,35 @@ public partial class PageGuia : ContentPage
                 return;
             }
 
-            var parametro = new Dictionary<string, object?> {{ "p_codigo", codigo }};
-            var resposta = await _supabase.Client!.Rpc("verificar_morse", parametro);
-            if (resposta.Content == "true")
+            try
             {
-                var parametros = new Dictionary<string, object?> { { "p_codigo", codigo }, {"p_tempo_restante", tempo} };
-                await _supabase.Client!.Rpc("atualizar_tempo", parametros);
-                morse_feito = true;
-                Morse.IsVisible = false;
-                timer.Stop();
-                int tempo_restante = 180 - tempo;
-                string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
-                await Navigation.PushAsync(new PageFim(tempo_restante_str));
-                var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-                break;
+                var parametro = new Dictionary<string, object?> {{ "p_codigo", codigo }};
+                var resposta = await _supabase.Client!.Rpc("verificar_morse", parametro);
+                if (resposta?.Content == "true")
+                {
+                    var parametros = new Dictionary<string, object?> { { "p_codigo", codigo }, {"p_tempo_restante", tempo} };
+                    await _supabase.Client!.Rpc("atualizar_tempo", parametros);
+                    morse_feito = true;
+                    Morse.IsVisible = false;
+                    timer.Stop();
+                    int tempo_restante = 180 - tempo;
+                    string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
+                    await Navigation.PushAsync(new PageFim(tempo_restante_str));
+                    var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                    await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                    break;
+                }
             }
-            else
-                await Task.Delay(500, token);
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuia] verificar_morse: {ex.Message}");
+            }
+
+            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
         }
     }
 
@@ -465,8 +558,15 @@ public partial class PageGuia : ContentPage
         {
             Accelerometer.Stop();
             Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("telemovel_abanou", parametro);
+            try
+            {
+                var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("telemovel_abanou", parametro);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuia] telemovel_abanou: {ex.Message}");
+            }
             await esperar_calibragem(_gameCancellation.Token);
         }
     }
@@ -485,26 +585,37 @@ public partial class PageGuia : ContentPage
                 return;
             }
 
-            var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
-            if (resposta.Content == "true")
+            try
             {
-                calibragem_feita = true;
-                Abanar_necessario.IsVisible = false;
-                interferencia = false;
-                passou_interferencia = true;
-                await atualizar_pos(_gameCancellation.Token);
-                break;
+                var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                var resposta = await _supabase.Client!.Rpc("calibragem_feita", parametro);
+                if (resposta?.Content == "true")
+                {
+                    calibragem_feita = true;
+                    Abanar_necessario.IsVisible = false;
+                    interferencia = false;
+                    passou_interferencia = true;
+                    await atualizar_pos(_gameCancellation.Token);
+                    break;
+                }
             }
-            else
-                await Task.Delay(500, token);
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuia] esperar_calibragem: {ex.Message}");
+            }
+
+            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
         }
     }
 
 
     private void btn_fechar(object sender, EventArgs e)
     {
-        click_som.Play();
+        try { click_som?.Play(); } catch { }
         ControlosCorretos.IsVisible = false;
         ControlosInvertidos.IsVisible = false;
         LabirintoView.Opacity = 1;
@@ -512,7 +623,7 @@ public partial class PageGuia : ContentPage
 
     private void btn_fechar2(object sender, EventArgs e)
     {
-        click_som.Play();
+        try { click_som?.Play(); } catch { }
         ControlosCorretos.IsVisible = false;
         ControlosInvertidos.IsVisible = false;
         LabirintoView.Opacity = 1;
@@ -531,7 +642,6 @@ public partial class PageGuia : ContentPage
 
         Accelerometer.Stop();
         Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
-
         Connectivity.Current.ConnectivityChanged -= Connectivity_ConnectivityChanged;
     }
 }

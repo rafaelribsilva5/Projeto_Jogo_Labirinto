@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
 using Projeto_Jogo_Labirinto.Services;
 using System.Threading.Tasks;
@@ -39,7 +39,11 @@ public partial class PageAgentePorta : ContentPage
     string codigo_encriptado = "";
     private void criar_sequencia()
     {
-        
+        codigo_porta = 7;
+        codigo_porta_anterior = 7;
+        total = 1;
+
+
         codigo_encriptado = "⟡";
         Random rnd = new Random();
         sequencia[0] = 0;
@@ -48,7 +52,19 @@ public partial class PageAgentePorta : ContentPage
             int num = rnd.Next(1, 13);
             codigo_encriptado += simbolos[num];
             sequencia[i] = num;
-            
+        }
+
+        lbl_CodigoEncriptado.Text = codigo_encriptado;
+
+        for (int i = 1; i < 5; i++)
+        {
+            AplicarSimbolo(sequencia[i]);
+            total += 1;
+        } 
+    }
+
+        private void AplicarSimbolo(int num)
+        {
             if (num == 1)
             {
                 simbolo1();
@@ -97,11 +113,7 @@ public partial class PageAgentePorta : ContentPage
             {
                 simbolo12();
             }
-            total += 1;
         }
-        lbl_CodigoEncriptado.Text = codigo_encriptado;
-    }
-
     private void simbolo1()
     {
         codigo_porta_anterior = codigo_porta;
@@ -152,16 +164,8 @@ public partial class PageAgentePorta : ContentPage
     private void simbolo6()
     {
         codigo_porta_anterior = codigo_porta;
-        int diferentes = 0;
-        int[] lista_unicos = new int[5] {20, 20, 20, 20, 20};
-        for (int j = 0; j < sequencia.Length; j++)
-        {
-            if (!lista_unicos.Contains(sequencia[j]))
-            {
-                lista_unicos[diferentes] = sequencia[j];
-                diferentes++;
-            }
-        }
+
+        int diferentes = sequencia.Distinct().Count();
         codigo_porta *= diferentes;
     }
     private void simbolo7()
@@ -178,17 +182,13 @@ public partial class PageAgentePorta : ContentPage
     }
     private void simbolo8()
     {
-        codigo_porta_anterior = codigo_porta;
         if (total >= 2)
         {
-            int qual = sequencia[sequencia.Length - 2];
-            string evento = "simbolo" + qual;
-            var metodo = this.GetType().GetMethod(evento, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (metodo != null)
+            int simbolo_anterior = sequencia[total - 1];
+            if (simbolo_anterior != 8)
             {
-                metodo.Invoke(this, null);
+                AplicarSimbolo(simbolo_anterior);
             }
-                
         }
     }
     private void simbolo9()
@@ -198,16 +198,21 @@ public partial class PageAgentePorta : ContentPage
     }
     private void simbolo10()
     {
-        codigo_porta_anterior = codigo_porta;
+        string s = Math.Abs(codigo_porta).ToString();
         string codigo_porta_str = codigo_porta.ToString();
-        char primeiro = codigo_porta_str[0];
-        codigo_porta_str = codigo_porta_str.Substring(1, codigo_porta_str.Length - 1) + primeiro;
-        codigo_porta = int.Parse(codigo_porta_str);
+        if (codigo_porta_str.Length > 1)
+        {
+            codigo_porta_anterior = codigo_porta;
+            char primeiro = codigo_porta_str[0];
+            codigo_porta_str = codigo_porta_str.Substring(1, codigo_porta_str.Length - 1) + primeiro;
+            codigo_porta = int.Parse(codigo_porta_str);
+        }
     }
 
     private void simbolo11()
     {
         codigo_porta_anterior = codigo_porta;
+        string s = Math.Abs(codigo_porta).ToString();
         string codigo_porta_str = codigo_porta.ToString();
         codigo_porta = 0;
         for (int i = 0; i < codigo_porta_str.Length; i++)
@@ -221,6 +226,7 @@ public partial class PageAgentePorta : ContentPage
     {
         if (total == 4)
         {
+            codigo_porta_anterior = codigo_porta;
             codigo_porta *= 3;
         }
     }
@@ -231,16 +237,26 @@ public partial class PageAgentePorta : ContentPage
         {
             codigo_correto.IsVisible = true;
             await Task.Delay(3000);
-            var parametro = new Dictionary<string, object> { { "p_codigo", codigo}};
-            var resposta = await _supabase.Client!.Rpc("porta_resolucao", parametro);
-            await Navigation.PopAsync();
+            try
+            {
+                await _supabaseInitializationTask;
+                if (_supabase.Client != null)
+                {
+                    var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                    await _supabase.Client!.Rpc("porta_resolucao", parametro);
+                    await Navigation.PopAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", ex.Message, "OK");
+            }
         }
         else
         {
             codigo_errado.IsVisible = true;
             await Task.Delay(3000);
             codigo_errado.IsVisible = false;
-            await Task.Delay(3000);
         }
     }
 

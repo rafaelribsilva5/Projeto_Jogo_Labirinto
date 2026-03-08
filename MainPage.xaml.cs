@@ -5,7 +5,6 @@ using Plugin.Maui.Audio;
 using Projeto_Jogo_Labirinto.Services;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Plugin.Maui.Audio;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Projeto_Jogo_Labirinto
@@ -33,18 +32,34 @@ namespace Projeto_Jogo_Labirinto
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            try
+            {
+                if (musica_espera == null)
+                {
+                    var stream = await FileSystem.OpenAppPackageFileAsync("musica_espera.mp3");
+                    musica_espera = _audioManager.CreatePlayer(stream);
+                    musica_espera.Volume = 0.5;
+                }
+                if (click_som == null)
+                {
+                    var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
+                    click_som = _audioManager.CreatePlayer(stream2);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Erro ao carregar áudio: {ex.Message}");
+            }
+        }
 
-            if (musica_espera == null)
-            {
-                var stream = await FileSystem.OpenAppPackageFileAsync("musica_espera.mp3");
-                musica_espera = _audioManager.CreatePlayer(stream);
-                musica_espera.Volume = 0.5;
-            }
-            if (click_som == null)
-            {
-                var stream2 = await FileSystem.OpenAppPackageFileAsync("click_som.mp3");
-                click_som = _audioManager.CreatePlayer(stream2);
-            }
+        private void TocarClickSom()
+        {
+            try { click_som?.Play(); } catch { /* ignorar falha de áudio */ }
+        }
+
+        private void PararMusicaEspera()
+        {
+            try { musica_espera?.Stop(); } catch { /* ignorar */ }
         }
 
         private async Task InicializarSupabaseAsync()
@@ -58,40 +73,50 @@ namespace Projeto_Jogo_Labirinto
             }
         }
 
+        private async Task GarantirSupabaseProntoAsync()
+        {
+            await _supabaseInitializationTask;
+            if (_supabase.Client == null)
+                throw new InvalidOperationException("Supabase não foi inicializado corretamente.");
+        }
+
 
         private async void btn_Criar_Sala_Clicked(object sender, EventArgs e)
         {
-
-            click_som.Play();
+            TocarClickSom();
             btn_Criar_Sala.IsEnabled = false;
-            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
-            {
-                await DisplayAlert("Sem ligação", "É necessária ligação à internet para jogar online.", "OK");
-                return;
-            }
             try
             {
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await DisplayAlert("Sem ligação", "É necessária ligação à internet para jogar online.", "OK");
+                    return;
+                }
+                await GarantirSupabaseProntoAsync();
                 var response = await _supabase.Client!.Rpc("gerar_sala_codigo", null);
                 codigo = response.Content?.Trim('"') ?? "";
                 lbl_Codigo.Text = codigo;
+
+                PaginaPrincipal.IsVisible = false;
+                CriarSalaView.IsVisible = true;
+                CriarSalaView.Opacity = 1;
+                PaginaPrincipal.Opacity = 0;
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Erro", $"Erro ao criar sala: {ex.Message}", "OK");
-                return;
             }
-
-            PaginaPrincipal.IsVisible = false;
-            CriarSalaView.IsVisible = true;
-            CriarSalaView.Opacity = 1;
-            PaginaPrincipal.Opacity = 0;
+            finally
+            {
+                btn_Criar_Sala.IsEnabled = true;
+            }
         }
 
         
         private async void btn_Sim_Clicked(object sender, EventArgs e)
         {
-            click_som.Play();
-            musica_espera.Stop();
+            TocarClickSom();
+            PararMusicaEspera();
             PaginaPrincipal.IsVisible = true;
             CriarSalaView.IsVisible = false;
             CriarSalaView.Opacity = 0;
@@ -111,24 +136,32 @@ namespace Projeto_Jogo_Labirinto
 
             fechar_sala.IsVisible = false;
 
-            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            try
+            {
+                await GarantirSupabaseProntoAsync();
+                var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Erro ao eliminar sala: {ex.Message}");
+            }
         }
 
         private void btn_Nao_Clicked(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             fechar_sala.IsVisible = false;
         }
         private void btn_Voltar(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             fechar_sala.IsVisible = true;
         }
 
-        private async void btn_Voltar2(object sender, EventArgs e)
+        private void btn_Voltar2(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             PaginaPrincipal.IsVisible = true;
             InserirCodigoView.IsVisible = false;
             InserirCodigoView.Opacity = 0;
@@ -136,8 +169,8 @@ namespace Projeto_Jogo_Labirinto
         }
         private async void btn_Voltar3(object sender, EventArgs e)
         {
-            click_som.Play();
-            musica_espera.Stop();
+            TocarClickSom();
+            PararMusicaEspera();
             PaginaPrincipal.IsVisible = true;
             ProcurarSalaView.IsVisible = false;
             ProcurarSalaView.Opacity = 0;
@@ -147,14 +180,21 @@ namespace Projeto_Jogo_Labirinto
             lbl_funcaoProcurar.Text = "";
             btn_Procurar_Sala.IsEnabled = true;
 
-            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-
+            try
+            {
+                await GarantirSupabaseProntoAsync();
+                var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Erro ao eliminar sala (Voltar3): {ex.Message}");
+            }
         }
 
         private async void btnGuia_Click(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             btn_Agente.IsEnabled = false;
             btn_Guia.IsEnabled = false;
             btn_Guia.BorderWidth = 4;
@@ -170,11 +210,12 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
+                await GarantirSupabaseProntoAsync();
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
 
                 minhaFuncao = "Guia";
-                comecarJogo();
+                _ = comecarJogo();
                 //await EntrarModoEsperaAsync();
             }
             catch (Exception ex)
@@ -186,7 +227,7 @@ namespace Projeto_Jogo_Labirinto
 
         private async void btnAgente_Click(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             btn_Agente.IsEnabled = false;
             btn_Guia.IsEnabled = false;
             btn_Agente.BorderWidth = 4;
@@ -202,11 +243,12 @@ namespace Projeto_Jogo_Labirinto
             }
             try
             {
+                await GarantirSupabaseProntoAsync();
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
 
                 minhaFuncao = "Agente";
-                comecarJogo();
+                _ = comecarJogo();
                 //await EntrarModoEsperaAsync();
             }
             catch (Exception ex)
@@ -219,26 +261,47 @@ namespace Projeto_Jogo_Labirinto
 
         private async Task comecarJogo()
         {
-            musica_espera.Play();
-            bool comecar = false;
+            PararMusicaEspera();
+            try { musica_espera?.Play(); } catch { /* ignorar */ }
 
-            while(comecar == false || clicouSair != true)
+            bool comecar = false;
+            try
             {
-                var parametro = new Dictionary<string, object?> { { "p_codigo", codigo }};
-                var resposta = await _supabase.Client!.Rpc("comecar", parametro);
-                if (resposta.Content == "true")
-                {
-                    comecar = true;
-                    await Task.Delay(1800);
-                    IniciarJogo();
-                    clicouSair = false;
-                    musica_espera.Stop();
-                    break;
-                }
-                    
-                else
-                    await Task.Delay(500);
+                await GarantirSupabaseProntoAsync();
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Erro", $"Erro: {ex.Message}", "OK");
+                ReativarBotoesAguardar();
+                return;
+            }
+
+            while (!comecar && !clicouSair)
+            {
+                try
+                {
+                    var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                    var resposta = await _supabase.Client!.Rpc("comecar", parametro);
+                    if (resposta.Content == "true")
+                    {
+                        comecar = true;
+                        await Task.Delay(1800);
+                        if (!clicouSair)
+                        {
+                            PararMusicaEspera();
+                            MainThread.BeginInvokeOnMainThread(IniciarJogo);
+                        }
+                        clicouSair = false;
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainPage] comecarJogo RPC: {ex.Message}");
+                }
+                await Task.Delay(500);
+            }
+            PararMusicaEspera();
         }
 
         private void ReativarBotoesAguardar()
@@ -256,7 +319,7 @@ namespace Projeto_Jogo_Labirinto
 
         private void btn_Inserir_Codigo(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             PaginaPrincipal.IsVisible = false;
             InserirCodigoView.IsVisible = true;
             InserirCodigoView.Opacity = 1;
@@ -265,21 +328,24 @@ namespace Projeto_Jogo_Labirinto
 
         private async void btn_Iniciar_Protocolo(object sender, EventArgs e)
         {
-            click_som.Play();
-            btn_Entrar.IsEnabled = true;
+            TocarClickSom();
+            btn_Entrar.IsEnabled = false;
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
                 await DisplayAlert("Sem ligação", "É necessária ligação à internet para jogar online.", "OK");
+                btn_Entrar.IsEnabled = true;
                 return;
             }
             codigo = txt_Codigo.Text?.Trim() ?? "";
             if (string.IsNullOrEmpty(codigo))
             {
                 await DisplayAlert("Código vazio", "Por favor, insira o código da sala.", "OK");
+                btn_Entrar.IsEnabled = true;
                 return;
             }
             try
             {
+                await GarantirSupabaseProntoAsync();
                 var parametro = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 var resposta = await _supabase.Client!.Rpc("entrar_em_sala", parametro);
 
@@ -288,6 +354,7 @@ namespace Projeto_Jogo_Labirinto
                     codigo_errado.IsVisible = true;
                     await Task.Delay(3000);
                     codigo_errado.IsVisible = false;
+                    btn_Entrar.IsEnabled = true;
                     return;
                 }
                 btn_Entrar.IsEnabled = false;
@@ -315,6 +382,7 @@ namespace Projeto_Jogo_Labirinto
             catch (Exception ex)
             {
                 await DisplayAlert("Erro", $"Erro ao entrar na sala: {ex.Message}", "OK");
+                btn_Entrar.IsEnabled = true;
             }
         }
         private void IniciarJogo()
@@ -331,7 +399,7 @@ namespace Projeto_Jogo_Labirinto
 
         private async void btn_Procurar_Sala_Clicked(object sender, EventArgs e)
         {
-            click_som.Play();
+            TocarClickSom();
             PaginaPrincipal.IsVisible = false;
             ProcurarSalaView.IsVisible = true;
             ProcurarSalaView.Opacity = 1;
@@ -340,6 +408,7 @@ namespace Projeto_Jogo_Labirinto
 
             try
             {
+                await GarantirSupabaseProntoAsync();
                 var resposta = await _supabase.Client!.Rpc("entrar_sala_publica", null);
 
                 var json = JsonDocument.Parse(resposta.Content);
@@ -367,7 +436,12 @@ namespace Projeto_Jogo_Labirinto
             }
             catch (Exception ex)
             {
-                DisplayAlert("Erro", "Não foi possível procurar protocolo. Tente novamente.", "Ok");
+                await DisplayAlert("Erro", "Não foi possível procurar protocolo. Tente novamente.", "Ok");
+                btn_Procurar_Sala.IsEnabled = true;
+                PaginaPrincipal.IsVisible = true;
+                ProcurarSalaView.IsVisible = false;
+                ProcurarSalaView.Opacity = 0;
+                PaginaPrincipal.Opacity = 1;
             }
         }
     }

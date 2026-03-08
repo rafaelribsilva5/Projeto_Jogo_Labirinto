@@ -36,20 +36,21 @@ public partial class PageFim : ContentPage
 
     private void btn_Avancar_Clicked(object? sender, EventArgs e)
     {
-        click_som.Play();
+        try { click_som?.Play(); } catch { }
         botao.IsVisible = false;
         Video2_MediaEnded(sender, e);
     }
     private void Video2_MediaFailed(object? sender, CommunityToolkit.Maui.Core.MediaFailedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"[PageFim] Vídeo falhou: {e?.ErrorMessage}");
+        System.Diagnostics.Debug.WriteLine($"[PageFim] V?deo falhou: {e?.ErrorMessage}");
         Tempo_final.IsVisible = true;
     }
 
-    private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
+    private void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
     {
-        click_som.Play();
-        Application.Current.MainPage = new NavigationPage(new MainPage());
+        try { click_som?.Play(); } catch { }
+        if (Application.Current != null)
+            Application.Current.MainPage = new NavigationPage(new MainPage());
     }
 
     protected override bool OnBackButtonPressed()

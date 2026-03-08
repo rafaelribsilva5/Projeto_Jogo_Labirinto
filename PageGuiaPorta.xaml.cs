@@ -27,20 +27,28 @@ public partial class PageGuiaPorta : ContentPage
 
     private async Task continuarLabirinto()
     {
+        await Task.Delay(5000);
+
         bool porta_resolvida = false;
 
         while (porta_resolvida == false)
         {
-            var parametro = new Dictionary<string, object?> {{ "p_codigo", codigo }};
-            var resposta = await _supabase.Client!.Rpc("porta_aberta", parametro);
-            if (resposta.Content == "true")
+            try
             {
-                porta_resolvida = true;
-                await Navigation.PopAsync();
-                break;
+                var parametro = new Dictionary<string, object?> {{ "p_codigo", codigo }};
+                var resposta = await _supabase.Client!.Rpc("porta_aberta", parametro);
+                if (resposta.Content == "true")
+                {
+                    porta_resolvida = true;
+                    MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
+                    break;
+                }
             }
-            else
-                await Task.Delay(500);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PageGuiaPorta] Erro: {ex.Message}");
+            }
+            await Task.Delay(500);
         }
     }
 
