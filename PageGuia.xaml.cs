@@ -19,7 +19,7 @@ public partial class PageGuia : ContentPage
     private IAudioPlayer click_som;
     private IAudioManager _audioManager = AudioManager.Current;
 
-    int tempo = 180;
+    int tempo = 210;
     int digito = 0;
     IDispatcherTimer timer;
     TimeSpan t;
@@ -138,6 +138,7 @@ public partial class PageGuia : ContentPage
                     await Task.Delay(10000);
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
+                        _heartbeatCancellation?.Cancel();
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                     }
                     else
@@ -158,7 +159,9 @@ public partial class PageGuia : ContentPage
                 }
                 catch (Exception ex)
                 {
-                     Application.Current.MainPage = new NavigationPage(new MainPage());
+                    _heartbeatCancellation?.Cancel();
+                    _gameCancellation?.Cancel();
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
                 }
             });
         }
@@ -190,6 +193,8 @@ public partial class PageGuia : ContentPage
                         await Task.Delay(2000);
                         var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                         await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                        _gameCancellation?.Cancel();
+                        _heartbeatCancellation?.Cancel();
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                         return;
                     });
@@ -200,7 +205,12 @@ public partial class PageGuia : ContentPage
                 return;
             }
 
-            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+            try { 
+                await Task.Delay(5000, token); 
+            }
+            catch (OperationCanceledException) { 
+                return;
+            }
         }
     }
 
@@ -230,7 +240,12 @@ public partial class PageGuia : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageGuia] atualizar_conexao: {ex.Message}");
             }
 
-            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+            try { 
+                await Task.Delay(5000, token); 
+            }
+            catch (OperationCanceledException) {
+                return; 
+            }
         }
     }
     private async void AnimarMira()
@@ -303,7 +318,7 @@ public partial class PageGuia : ContentPage
                 Accelerometer.Stop();
 
 
-                tempo = 180;
+                tempo = 210;
                 Tempo_acabou.IsVisible = true;
             }
         };
@@ -315,7 +330,7 @@ public partial class PageGuia : ContentPage
         click_som.Play();
     }
 
-    private async void btn_Recomecar_Clicked (object? sender, EventArgs e)
+    /*private async void btn_Recomecar_Clicked (object? sender, EventArgs e)
     {
         TocarClickSom();
 
@@ -336,10 +351,15 @@ public partial class PageGuia : ContentPage
 
         await Navigation.PushAsync(new PageGuia(codigo));
         Navigation.RemovePage(this);
-    }
+    }*/
     private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
     {
-        try { click_som?.Play(); } catch { }
+        try {
+            click_som?.Play(); 
+        } 
+        catch { }
+        _gameCancellation?.Cancel();
+        _heartbeatCancellation?.Cancel();
         Application.Current!.MainPage = new NavigationPage(new MainPage());
 
         try
@@ -419,7 +439,12 @@ public partial class PageGuia : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageGuia] atualizar_pos: {ex.Message}");
             }
 
-            try { await Task.Delay(300, token); } catch (OperationCanceledException) { return; }
+            try {
+                await Task.Delay(300, token); 
+            }
+            catch (OperationCanceledException) {
+                return; 
+            }
         }
     }
 
@@ -523,9 +548,10 @@ public partial class PageGuia : ContentPage
                     morse_feito = true;
                     Morse.IsVisible = false;
                     timer.Stop();
-                    int tempo_restante = 180 - tempo;
+                    int tempo_restante = 210 - tempo;
                     string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                     _heartbeatCancellation?.Cancel();
+                    _gameCancellation?.Cancel();
                     await Navigation.PushAsync(new PageFim(tempo_restante_str));
                     var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                     await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
@@ -541,7 +567,12 @@ public partial class PageGuia : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageGuia] verificar_morse: {ex.Message}");
             }
 
-            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
+            try {
+                await Task.Delay(500, token); 
+            }
+            catch (OperationCanceledException) {
+                return; 
+            }
         }
     }
 
@@ -615,7 +646,12 @@ public partial class PageGuia : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageGuia] esperar_calibragem: {ex.Message}");
             }
 
-            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
+            try {
+                await Task.Delay(500, token); 
+            } 
+            catch (OperationCanceledException) {
+                return; 
+            }
         }
     }
 

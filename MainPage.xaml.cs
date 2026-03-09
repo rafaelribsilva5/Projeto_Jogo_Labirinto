@@ -141,6 +141,9 @@ namespace Projeto_Jogo_Labirinto
                 await GarantirSupabaseProntoAsync();
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+
+                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                var respostaJogador = await _supabase.Client.Rpc("eliminar_jogador", parametroJogador);
             }
             catch (Exception ex)
             {
@@ -214,9 +217,11 @@ namespace Projeto_Jogo_Labirinto
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
 
+                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Guia" } };
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+
                 minhaFuncao = "Guia";
-                _ = comecarJogo();
-                //await EntrarModoEsperaAsync();
+                comecarJogo();
             }
             catch (Exception ex)
             {
@@ -247,9 +252,11 @@ namespace Projeto_Jogo_Labirinto
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                 await _supabase.Client!.Rpc("criar_sala_privada", parametroSala);
 
+                var parametroJogador = new Dictionary<string, object?> { { "p_codigo", codigo }, { "p_funcao", "Agente" } };
+                await _supabase.Client.Rpc("criar_jogador", parametroJogador);
+
                 minhaFuncao = "Agente";
-                _ = comecarJogo();
-                //await EntrarModoEsperaAsync();
+                comecarJogo();
             }
             catch (Exception ex)
             {
@@ -286,11 +293,8 @@ namespace Projeto_Jogo_Labirinto
                     {
                         comecar = true;
                         await Task.Delay(1800);
-                        if (!clicouSair)
-                        {
-                            PararMusicaEspera();
-                            MainThread.BeginInvokeOnMainThread(IniciarJogo);
-                        }
+                        PararMusicaEspera();
+                        IniciarJogo();
                         clicouSair = false;
                         break;
                     }
@@ -377,7 +381,6 @@ namespace Projeto_Jogo_Labirinto
                     await Task.Delay(2000);
                     IniciarJogo();
                 }
-                //await EntrarModoEsperaAsync();
             }
             catch (Exception ex)
             {

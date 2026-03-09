@@ -15,6 +15,8 @@ public partial class PageAgente : ContentPage
     private IAudioManager _audioManager = AudioManager.Current;
     private CancellationTokenSource _gameCancellation;
     private CancellationTokenSource _heartbeatCancellation;
+    private bool sair_pagina_final = false;
+    private bool sair_pagina_porta = false;
 
     string codigo = "";
     int digito = 0;
@@ -77,6 +79,8 @@ public partial class PageAgente : ContentPage
 
         _gameCancellation = new CancellationTokenSource();
         _heartbeatCancellation?.Cancel();
+        sair_pagina_final = false;
+        sair_pagina_porta = false;
         _heartbeatCancellation = new CancellationTokenSource();
         var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
         await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
@@ -136,6 +140,9 @@ public partial class PageAgente : ContentPage
                     await Task.Delay(10000);
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
+                        _heartbeatCancellation?.Cancel();
+                        sair_pagina_final = true;
+                        sair_pagina_porta = true;
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                     }
                     else
@@ -144,6 +151,8 @@ public partial class PageAgente : ContentPage
 
                         _heartbeatCancellation = new CancellationTokenSource();
                         _gameCancellation = new CancellationTokenSource();
+                        sair_pagina_porta = false;
+                        sair_pagina_final = false;
                         _ = verificar_digito(_gameCancellation.Token);
                         _ =  Verificar_guia_online(_gameCancellation.Token);
                         _ = Atulaizar_conexao(_gameCancellation.Token);
@@ -152,6 +161,10 @@ public partial class PageAgente : ContentPage
                 }
                 catch (Exception ex)
                 {
+                    _heartbeatCancellation?.Cancel();
+                    _gameCancellation?.Cancel();
+                    sair_pagina_porta = true;
+                    sair_pagina_final = true;
                     Application.Current.MainPage = new NavigationPage(new MainPage());
                 }
             });
@@ -160,17 +173,8 @@ public partial class PageAgente : ContentPage
 
     private async Task Verificar_guia_online(CancellationToken token)
     {
-        while (true)
+        while (sair_pagina_final == false)
         {
-            try
-            {
-                token.ThrowIfCancellationRequested();
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
             try
             {
                 var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
@@ -184,6 +188,10 @@ public partial class PageAgente : ContentPage
                         await Task.Delay(2000);
                         var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                         await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                        _gameCancellation?.Cancel();
+                        _heartbeatCancellation?.Cancel();
+                        sair_pagina_porta = true;
+                        sair_pagina_final = true;
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                         return;
                     });
@@ -194,17 +202,25 @@ public partial class PageAgente : ContentPage
                 return;
             }
 
-            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+            try { 
+                await Task.Delay(5000, token);
+            } 
+            catch (OperationCanceledException) { 
+                return; 
+            }
         }
     }
 
     private async Task Atulaizar_conexao(CancellationToken token)
     {
-        while (true)
+        while (sair_pagina_final == false)
         {
             try
             {
-                token.ThrowIfCancellationRequested();
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
             }
             catch (OperationCanceledException)
             {
@@ -223,7 +239,12 @@ public partial class PageAgente : ContentPage
             {
                 System.Diagnostics.Debug.WriteLine($"[PageAgente] Atulaizar_conexao: {ex.Message}");
             }
-            try { await Task.Delay(5000, token); } catch (OperationCanceledException) { return; }
+            try {
+                await Task.Delay(5000, token); 
+            } 
+            catch (OperationCanceledException) {
+                return; 
+            }
         }
     }
 
@@ -472,7 +493,7 @@ public partial class PageAgente : ContentPage
         if (posX == 16 && posY == 9 && esta_no_morse == false)
         {
             esta_no_morse = true;
-            await Task.Delay(15000);
+            await Task.Delay(15000, _gameCancellation.Token);
             await mostrar_morse(_gameCancellation.Token);
             
         }
@@ -481,6 +502,10 @@ public partial class PageAgente : ContentPage
     private async void Accelerometer_ReadingChanged(object sender, AccelerometerChangedEventArgs e)
     {
         if (_gameCancellation?.IsCancellationRequested == true)
+        {
+            return;
+        }
+        if (sair_pagina_final == true || sair_pagina_porta == true)
         {
             return;
         }
@@ -511,11 +536,14 @@ public partial class PageAgente : ContentPage
     private async Task esperar_calibragem(CancellationToken token)
     {
         bool calibragem_feita = false;
-        while (calibragem_feita == false)
+        while (calibragem_feita == false && sair_pagina_final == false && sair_pagina_porta == false)
         {
             try
             {
-                token.ThrowIfCancellationRequested();
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
             }
             catch (OperationCanceledException)
             {
@@ -546,7 +574,12 @@ public partial class PageAgente : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageAgente] esperar_calibragem: {ex.Message}");
             }
 
-            try { await Task.Delay(500, token); } catch (OperationCanceledException) { return; }
+            try { 
+                await Task.Delay(500, token); 
+            } 
+            catch (OperationCanceledException) { 
+                return; 
+            }
         }
     }
     private void mudar_controlos()
@@ -592,169 +625,185 @@ public partial class PageAgente : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"[PageAgente] beep_morse: {ex.Message}");
         }
+
         try
         {
-            token.ThrowIfCancellationRequested();
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
-        await Task.Delay(4000, token);
-        Contagem.IsVisible = true;
-        lbl_Contagem.Text = "COMEÇA EM";
-        await Task.Delay(1000, token);
-        lbl_Contagem.Text = "3";
-        await Task.Delay(1000, token);
-        lbl_Contagem.Text = "2";
-        await Task.Delay(1000, token);
-        lbl_Contagem.Text = "1";
-        await Task.Delay(1000, token);
-        Contagem.IsVisible = false;
-        foreach (string simbolo in morse)
-        {
-            try
+            if (sair_pagina_porta == true || sair_pagina_final == true)
             {
-                token.ThrowIfCancellationRequested();
+                return;
             }
-            catch (OperationCanceledException)
+            await Task.Delay(4000, token);
+            Contagem.IsVisible = true;
+            lbl_Contagem.Text = "COMEÇA EM";
+            await Task.Delay(1000, token);
+            lbl_Contagem.Text = "3";
+            await Task.Delay(1000, token);
+            if (sair_pagina_porta == true || sair_pagina_final == true)
+            {
+                return;
+            }
+            lbl_Contagem.Text = "2";
+            await Task.Delay(1000, token);
+            lbl_Contagem.Text = "1";
+            await Task.Delay(1000, token);
+            Contagem.IsVisible = false;
+
+            foreach (string simbolo in morse)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                if (sair_pagina_porta == true || sair_pagina_final == true)
+                {
+                    return;
+                }
+                if (simbolo == "--")
+                {
+                    beep_morse?.Play();
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(1500, token);
+                    await Flashlight.TurnOffAsync();
+                    await Task.Delay(300, token);
+                    beep_morse?.Play();
+                    if (sair_pagina_porta == true || sair_pagina_final == true)
+                    {
+                        return;
+                    }
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(1500, token);
+                    await Flashlight.TurnOffAsync();
+                }
+                else if (simbolo == ".")
+                {
+                    beep_morse?.Play();
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(300, token);
+                    await Flashlight.TurnOffAsync();
+                }
+                else if (simbolo == "..")
+                {
+                    beep_morse?.Play();
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(300, token);
+                    await Flashlight.TurnOffAsync();
+                    await Task.Delay(300, token);
+                    beep_morse?.Play();
+                    if (sair_pagina_porta == true || sair_pagina_final == true)
+                    {
+                        return;
+                    }
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(300, token);
+                    await Flashlight.TurnOffAsync();
+                }
+                else if (simbolo == "-")
+                {
+                    beep_morse?.Play();
+                    await Flashlight.TurnOnAsync();
+                    await Task.Delay(1500, token);
+                    await Flashlight.TurnOffAsync();
+                }
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                if (sair_pagina_porta == true || sair_pagina_final == true)
+                {
+                    return;
+                }
+                await Task.Delay(2300, token);
+            }
+            if (sair_pagina_porta == true || sair_pagina_final == true)
+            {
+                return;
+            }
+            await Task.Delay(2300, token);
+            if (sair_pagina_porta == true || sair_pagina_final == true)
             {
                 return;
             }
 
-            if (simbolo == "--")
+            string mensagem_morse = "";
+            for (int i = 0; i < 4; i++)
             {
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(1500, token);
-                await Flashlight.TurnOffAsync();
-                await Task.Delay(300, token);
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(1500, token);
-                await Flashlight.TurnOffAsync();
+                mensagem_morse += correcao_morse[i].ToString();
             }
-            else if (simbolo == ".")
-            {
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(300, token);
-                await Flashlight.TurnOffAsync();
-            }
-                
-            else if (simbolo == "..")
-            {
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(300, token);
-                await Flashlight.TurnOffAsync();
-                await Task.Delay(300, token);
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(300, token);
-                await Flashlight.TurnOffAsync();
-            }
-            else if (simbolo == "-")
-            {
-                beep_morse?.Play();
-                await Flashlight.TurnOnAsync();
-                await Task.Delay(1500, token);
-                await Flashlight.TurnOffAsync();
-            }
-            await Task.Delay(2300, token);
-        }
-        await Task.Delay(2300, token);
-        string mensagem_morse = "";
-        try
-        {
-            token.ThrowIfCancellationRequested();
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
-        for (int i = 0; i < 4; i++)
-        {
-            mensagem_morse += correcao_morse[i].ToString();
-        }
-        if (mensagem_morse == "2352")
-        {
-            try
-            {
-                var parametro = new Dictionary<string, object> { { "p_codigo", codigo }};
-                await _supabase.Client!.Rpc("morse_resolvido", parametro);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[PageAgente] morse_resolvido: {ex.Message}");
-            }
-            int tempo_restante = 900;
-            while (tempo_restante == 900)
-            {
-                try
-                {
-                    token.ThrowIfCancellationRequested();
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
 
+            if (mensagem_morse == "2352")
+            {
                 try
                 {
-                    var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                    var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
-                    if (resposta?.Content != null && int.TryParse(resposta.Content, out int t))
-                    {
-                        tempo_restante = t;
-                        if (tempo_restante != 900)
-                        {
-                            tempo_restante = 180 - tempo_restante;
-                            string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
-                            _heartbeatCancellation?.Cancel();
-                            await Navigation.PushAsync(new PageFim(tempo_restante_str));
-                            var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
-                            await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
-                            break;
-                        }
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
+                    var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
+                    await _supabase.Client!.Rpc("morse_resolvido", parametro);
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[PageAgente] verificar_tempo: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[PageAgente] morse_resolvido: {ex.Message}");
                 }
 
-                try { await Task.Delay(400, token); } catch (OperationCanceledException) { return; }
+                int tempo_restante = 900;
+                while (tempo_restante == 900)
+                {
+                    if (sair_pagina_porta == true || sair_pagina_final == true)
+                    {
+                        return;
+                    }
+                    try
+                    {
+                        var parametr = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                        var resposta = await _supabase.Client!.Rpc("verificar_tempo", parametr);
+                        if (resposta?.Content != null && int.TryParse(resposta.Content, out int t))
+                        {
+                            tempo_restante = t;
+                            if (tempo_restante != 900)
+                            {
+                                tempo_restante = 180 - tempo_restante;
+                                string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
+                                _heartbeatCancellation?.Cancel();
+                                await Navigation.PushAsync(new PageFim(tempo_restante_str));
+                                var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
+                                await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
+                                break;
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[PageAgente] verificar_tempo: {ex.Message}");
+                    }
+                    await Task.Delay(400, token);
+                }
+            }
+            else
+            {
+                morse_errado.IsVisible = true;
+                await Task.Delay(2500, token);
+
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                morse_errado.IsVisible = false;
+                correcao_morse = new int[4];
+                await mostrar_morse(token);
             }
         }
-        else
+        catch (OperationCanceledException)
         {
-            morse_errado.IsVisible = true;
-            await Task.Delay(2500, token);
-            morse_errado.IsVisible = false;
-            correcao_morse = new int[4];
-            await mostrar_morse(_gameCancellation.Token);
+            await Flashlight.TurnOffAsync();
         }
     }
 
 
     private async Task verificar_digito(CancellationToken token)
     {
-        while (true)
+        while (sair_pagina_final == false)
         {
-            try
-            {
-                token.ThrowIfCancellationRequested();
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
             try
             {
                 var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
@@ -772,41 +821,65 @@ public partial class PageAgente : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageAgente] verificar_digito: {ex.Message}");
             }
 
-            try { await Task.Delay(300, token); } catch (OperationCanceledException) { return; }
+            try { 
+                await Task.Delay(300, token); 
+            } 
+            catch (OperationCanceledException) 
+            { 
+                return; 
+            }
         }
     }
-
+    private bool reiniciando = false;
 
     private async void analise2()
     {
         if (digito == 1)
         {
-            posX = 1;
-            posY = 6;
-            esta_no_morse = false;
-            invertido = false;
-            esta_na_porta = false;
-            total_agitar = 0;
-            correcao_morse = new int[4];
-            porta_resolvida = false;
-            agitar_resolvido = false;
-            btn_baixo.Clicked -= BtnBaixo_Clicked;
-            btn_cima.Clicked -= BtnCima_Clicked;
-            btn_esquerda.Clicked -= BtnEsquerda_Clicked;
-            btn_direita.Clicked -= BtnDireita_Clicked;
-            btn_baixo.Clicked += BtnBaixo_Clicked;
-            btn_cima.Clicked += BtnCima_Clicked;
-            btn_esquerda.Clicked += BtnEsquerda_Clicked;
-            btn_direita.Clicked += BtnDireita_Clicked;
+            if (sair_pagina_final == true || reiniciando)
+            {
+                return;
+            }
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                reiniciando = true;
 
-            _gameCancellation?.Cancel();
+                posX = 1;
+                posY = 6;
+                esta_no_morse = false;
+                invertido = false;
+                esta_na_porta = false;
+                total_agitar = 0;
+                correcao_morse = new int[4];
+                porta_resolvida = false;
+                agitar_resolvido = false;
+                btn_baixo.Clicked -= BtnBaixo_Clicked;
+                btn_cima.Clicked -= BtnCima_Clicked;
+                btn_esquerda.Clicked -= BtnEsquerda_Clicked;
+                btn_direita.Clicked -= BtnDireita_Clicked;
+                btn_baixo.Clicked += BtnBaixo_Clicked;
+                btn_cima.Clicked += BtnCima_Clicked;
+                btn_esquerda.Clicked += BtnEsquerda_Clicked;
+                btn_direita.Clicked += BtnDireita_Clicked;
 
-            var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
-            await _supabase.Client!.Rpc("atualizar_digito", parametros);
 
+                var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
+                await _supabase.Client!.Rpc("atualizar_digito", parametros);
 
-            await Navigation.PushAsync(new PageAgente(codigo));
-            Navigation.RemovePage(this);
+                sair_pagina_final = true;
+                sair_pagina_porta = true;
+
+                parceiro_sem_net.IsVisible = true;
+
+                await Task.Delay(3000);
+
+                parceiro_sem_net.IsVisible = false;
+
+                _heartbeatCancellation?.Cancel();
+                _gameCancellation?.Cancel();
+                await Navigation.PushAsync(new PageAgente(codigo));
+                Navigation.RemovePage(this);
+            });
         }
         if (digito == 2)
         {
@@ -820,7 +893,13 @@ public partial class PageAgente : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[PageAgente] analise2 digito 2: {ex.Message}");
             }
             if (Application.Current != null)
+            {
+                _gameCancellation?.Cancel();
+                _heartbeatCancellation?.Cancel();
+                sair_pagina_porta = true;
+                sair_pagina_final = true;
                 Application.Current.MainPage = new NavigationPage(new MainPage());
+            }
             try
             {
                 var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
@@ -838,7 +917,13 @@ public partial class PageAgente : ContentPage
             try
             {
                 if (Application.Current != null)
+                {
+                    _gameCancellation?.Cancel();
+                    _heartbeatCancellation?.Cancel();
+                    sair_pagina_porta = true;
+                    sair_pagina_final = true;
                     Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
                 if (_supabase.Client != null)
                 {
                     var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
@@ -861,6 +946,7 @@ public partial class PageAgente : ContentPage
     {
         base.OnDisappearing();
         _gameCancellation?.Cancel();
+        sair_pagina_porta = true;
         Accelerometer.Stop();
         Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
         Connectivity.Current.ConnectivityChanged -= Connectivity_ConnectivityChanged;
