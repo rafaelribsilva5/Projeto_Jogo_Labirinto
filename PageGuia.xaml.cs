@@ -15,11 +15,13 @@ public partial class PageGuia : ContentPage
     private Task _supabaseInitializationTask = null!;
     private CancellationTokenSource _gameCancellation;
     private CancellationTokenSource _heartbeatCancellation;
+    private bool sair_pagina_final = false;
+    private bool sair_pagina_porta = false;
 
     private IAudioPlayer click_som;
     private IAudioManager _audioManager = AudioManager.Current;
 
-    int tempo = 210;
+    int tempo = 330;
     int digito = 0;
     IDispatcherTimer timer;
     TimeSpan t;
@@ -56,8 +58,11 @@ public partial class PageGuia : ContentPage
         _gameCancellation = new CancellationTokenSource();
         _heartbeatCancellation?.Cancel();
         _heartbeatCancellation = new CancellationTokenSource();
+        sair_pagina_final = false;
+        sair_pagina_porta = false;
         var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
         await _supabase.Client!.Rpc("ultima_vez_guia", parametro);
+        await Task.Delay(2000);
         _ = Atulaizar_conexao(_heartbeatCancellation.Token);
         _ = Verificar_agente_online(_heartbeatCancellation.Token);
 
@@ -139,6 +144,8 @@ public partial class PageGuia : ContentPage
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
                         _heartbeatCancellation?.Cancel();
+                        sair_pagina_final = true;
+                        sair_pagina_porta = true;
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                     }
                     else
@@ -149,6 +156,8 @@ public partial class PageGuia : ContentPage
 
                         _heartbeatCancellation = new CancellationTokenSource();
                         _gameCancellation = new CancellationTokenSource();
+                        sair_pagina_porta = false;
+                        sair_pagina_final = false;
                         _ = atualizar_pos(_gameCancellation.Token);
                         _ = verificar_morse(_gameCancellation.Token);
                         _ = esperar_calibragem(_gameCancellation.Token);
@@ -161,6 +170,8 @@ public partial class PageGuia : ContentPage
                 {
                     _heartbeatCancellation?.Cancel();
                     _gameCancellation?.Cancel();
+                    sair_pagina_porta = true;
+                    sair_pagina_final = true;
                     Application.Current.MainPage = new NavigationPage(new MainPage());
                 }
             });
@@ -169,7 +180,7 @@ public partial class PageGuia : ContentPage
 
     private async Task Verificar_agente_online(CancellationToken token)
     {
-        while (true)
+        while (sair_pagina_final == false)
         {
             try
             {
@@ -195,6 +206,8 @@ public partial class PageGuia : ContentPage
                         await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
                         _gameCancellation?.Cancel();
                         _heartbeatCancellation?.Cancel();
+                        sair_pagina_porta = true;
+                        sair_pagina_final = true;
                         Application.Current.MainPage = new NavigationPage(new MainPage());
                         return;
                     });
@@ -216,7 +229,7 @@ public partial class PageGuia : ContentPage
 
     private async Task Atulaizar_conexao(CancellationToken token)
     {
-        while (true)
+        while (sair_pagina_final == false)
         {
             try
             {
@@ -318,7 +331,7 @@ public partial class PageGuia : ContentPage
                 Accelerometer.Stop();
 
 
-                tempo = 210;
+                tempo = 300;
                 Tempo_acabou.IsVisible = true;
             }
         };
@@ -330,28 +343,6 @@ public partial class PageGuia : ContentPage
         click_som.Play();
     }
 
-    /*private async void btn_Recomecar_Clicked (object? sender, EventArgs e)
-    {
-        TocarClickSom();
-
-        timer?.Stop();
-        _gameCancellation?.Cancel();
-        _heartbeatCancellation?.Cancel();
-
-        var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 1 }};
-        await _supabase.Client!.Rpc("atualizar_digito", parametros);
-
-        var parametross = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_posx", 1 }, { "p_posy", 6 } };
-        await _supabase.Client!.Rpc("atualizar_posicao", parametross);
-
-        var parametrosss = new Dictionary<string, object> { { "p_codigo", codigo } };
-        await _supabase.Client!.Rpc("reset_estado_sala", parametrosss);
-
-        Tempo_acabou.IsVisible = false;
-
-        await Navigation.PushAsync(new PageGuia(codigo));
-        Navigation.RemovePage(this);
-    }*/
     private async void btn_Pagina_inicial_Clicked(object? sender, EventArgs e)
     {
         try {
@@ -360,6 +351,8 @@ public partial class PageGuia : ContentPage
         catch { }
         _gameCancellation?.Cancel();
         _heartbeatCancellation?.Cancel();
+        sair_pagina_final = true;
+        sair_pagina_porta = true;
         Application.Current!.MainPage = new NavigationPage(new MainPage());
 
         try
@@ -400,7 +393,7 @@ public partial class PageGuia : ContentPage
 
     private async Task atualizar_pos(CancellationToken token)
         {
-        while (esta_na_porta == false && interferencia == false && esta_no_morse == false)
+        while (esta_na_porta == false && interferencia == false && esta_no_morse == false && sair_pagina_final == false)
         {
             try
             {
@@ -526,7 +519,7 @@ public partial class PageGuia : ContentPage
     private async Task verificar_morse(CancellationToken token)
     {
         bool morse_feito = false;
-        while (morse_feito == false)
+        while (morse_feito == false && sair_pagina_final == false)
         {
             try
             {
@@ -548,10 +541,12 @@ public partial class PageGuia : ContentPage
                     morse_feito = true;
                     Morse.IsVisible = false;
                     timer.Stop();
-                    int tempo_restante = 210 - tempo;
+                    int tempo_restante = 330 - tempo;
                     string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                     _heartbeatCancellation?.Cancel();
                     _gameCancellation?.Cancel();
+                    sair_pagina_final = true;
+                    sair_pagina_porta = true;
                     await Navigation.PushAsync(new PageFim(tempo_restante_str));
                     var parametroSala = new Dictionary<string, object?> { { "p_codigo", codigo } };
                     await _supabase.Client!.Rpc("eliminar_sala", parametroSala);
@@ -612,7 +607,7 @@ public partial class PageGuia : ContentPage
     private async Task esperar_calibragem(CancellationToken token)
     {
         bool calibragem_feita = false;
-        while (calibragem_feita == false)
+        while (calibragem_feita == false && sair_pagina_final == false)
         {
             try
             {

@@ -84,6 +84,7 @@ public partial class PageAgente : ContentPage
         _heartbeatCancellation = new CancellationTokenSource();
         var parametro = new Dictionary<string, object> { { "p_codigo", codigo } };
         await _supabase.Client!.Rpc("ultima_vez_agente", parametro);
+        await Task.Delay(2000);
         _ = Atulaizar_conexao(_heartbeatCancellation.Token);
         _ = Verificar_guia_online(_heartbeatCancellation.Token);
 
@@ -287,6 +288,7 @@ public partial class PageAgente : ContentPage
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+            await Task.Delay(100);
             await analise();
         }
         else
@@ -329,6 +331,7 @@ public partial class PageAgente : ContentPage
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+            await Task.Delay(100);
             await analise();
         }
         else
@@ -371,6 +374,7 @@ public partial class PageAgente : ContentPage
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+            await Task.Delay(100);
             await analise();
         }
         else
@@ -413,6 +417,8 @@ public partial class PageAgente : ContentPage
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
+
+            await Task.Delay(100);
             await analise();
         }
         else
@@ -434,8 +440,6 @@ public partial class PageAgente : ContentPage
             btn_direita.IsEnabled = true;
         }
     }
-
-
     private async Task analise()
     {
         if (invertido == false)
@@ -493,6 +497,10 @@ public partial class PageAgente : ContentPage
         if (posX == 16 && posY == 9 && esta_no_morse == false)
         {
             esta_no_morse = true;
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
             await Task.Delay(15000, _gameCancellation.Token);
             await mostrar_morse(_gameCancellation.Token);
             
@@ -616,6 +624,10 @@ public partial class PageAgente : ContentPage
 
     private async Task mostrar_morse(CancellationToken token)
     {
+        btn_baixo.IsEnabled = false;
+        btn_cima.IsEnabled = false;
+        btn_esquerda.IsEnabled = false;
+        btn_direita.IsEnabled = false;
         IAudioPlayer? beep_morse = null;
         try
         {
@@ -648,6 +660,10 @@ public partial class PageAgente : ContentPage
             await Task.Delay(1000, token);
             Contagem.IsVisible = false;
 
+            btn_baixo.IsEnabled = true;
+            btn_cima.IsEnabled = true;
+            btn_esquerda.IsEnabled = true;
+            btn_direita.IsEnabled = true;
             foreach (string simbolo in morse)
             {
                 if (token.IsCancellationRequested)
@@ -723,6 +739,10 @@ public partial class PageAgente : ContentPage
             {
                 return;
             }
+            btn_baixo.IsEnabled = false;
+            btn_cima.IsEnabled = false;
+            btn_esquerda.IsEnabled = false;
+            btn_direita.IsEnabled = false;
 
             string mensagem_morse = "";
             for (int i = 0; i < 4; i++)
@@ -758,7 +778,7 @@ public partial class PageAgente : ContentPage
                             tempo_restante = t;
                             if (tempo_restante != 900)
                             {
-                                tempo_restante = 180 - tempo_restante;
+                                tempo_restante = 330 - tempo_restante;
                                 string tempo_restante_str = TimeSpan.FromSeconds(tempo_restante).ToString(@"mm\:ss");
                                 _heartbeatCancellation?.Cancel();
                                 await Navigation.PushAsync(new PageFim(tempo_restante_str));
@@ -830,57 +850,9 @@ public partial class PageAgente : ContentPage
             }
         }
     }
-    private bool reiniciando = false;
 
     private async void analise2()
     {
-        if (digito == 1)
-        {
-            if (sair_pagina_final == true || reiniciando)
-            {
-                return;
-            }
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                reiniciando = true;
-
-                posX = 1;
-                posY = 6;
-                esta_no_morse = false;
-                invertido = false;
-                esta_na_porta = false;
-                total_agitar = 0;
-                correcao_morse = new int[4];
-                porta_resolvida = false;
-                agitar_resolvido = false;
-                btn_baixo.Clicked -= BtnBaixo_Clicked;
-                btn_cima.Clicked -= BtnCima_Clicked;
-                btn_esquerda.Clicked -= BtnEsquerda_Clicked;
-                btn_direita.Clicked -= BtnDireita_Clicked;
-                btn_baixo.Clicked += BtnBaixo_Clicked;
-                btn_cima.Clicked += BtnCima_Clicked;
-                btn_esquerda.Clicked += BtnEsquerda_Clicked;
-                btn_direita.Clicked += BtnDireita_Clicked;
-
-
-                var parametros = new Dictionary<string, object> { { "p_codigo", codigo }, { "p_digito", 0 } };
-                await _supabase.Client!.Rpc("atualizar_digito", parametros);
-
-                sair_pagina_final = true;
-                sair_pagina_porta = true;
-
-                parceiro_sem_net.IsVisible = true;
-
-                await Task.Delay(3000);
-
-                parceiro_sem_net.IsVisible = false;
-
-                _heartbeatCancellation?.Cancel();
-                _gameCancellation?.Cancel();
-                await Navigation.PushAsync(new PageAgente(codigo));
-                Navigation.RemovePage(this);
-            });
-        }
         if (digito == 2)
         {
             try

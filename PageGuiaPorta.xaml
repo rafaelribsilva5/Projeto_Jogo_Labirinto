@@ -6,229 +6,309 @@
              NavigationPage.HasNavigationBar="False"
 Shell.NavBarIsVisible="False"
 BackgroundImageSource="fundo_mainpage_escuro2.png">
-    <ScrollView>
-        <VerticalStackLayout Spacing="20" Padding="20">
-            <Label Text="LISTA DE SÍMBOLOS"
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="20" Padding="20">
+                <Label Text="LISTA DE SÍMBOLOS"
                      FontSize="24"
                      FontAttributes="Bold"
                      FontFamily="Archive"
                      HorizontalOptions="Start"
                      Margin="10,10,0,0"
                      TextColor="#8AF3FE"/>
-            <Label Text="Cada símbolo altera um número. Descobre a sequência correta!"
+                <Label Text="Cada símbolo altera um número. Descobre a sequência correta!"
                      FontSize="18"
                      HorizontalOptions="Start"
                      Margin="10,0,0,20"
                      TextColor="White"/>
-            <Grid
+                <Grid
                 ColumnDefinitions="*, 4*"
                 RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
                 RowSpacing="20">
-                <Label Text="⟡"
+                    <Label Text="⟡"
                        TextColor="White"
                        FontSize="30"
                        VerticalOptions="Center"
                        Grid.Row="0"
                        Grid.Column="0"
                        HorizontalOptions="Center"/>
-                <Label Text="Começa em 7."
+                    <Label Text="Começa em 7."
                           FontSize="14"
                           TextColor="White"
                           Grid.Row="0"
                           Grid.Column="1"
                           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
-                <Label Text="⌬"
+                    <Label Text="⌬"
        FontSize="30"
 VerticalOptions="Center"
        Grid.Row="1"
        TextColor="White"
        Grid.Column="0"
        HorizontalOptions="Center"/>
-                <Label Text="Eleva o número atual ao quadrado."
+                    <Label Text="Eleva o número atual ao quadrado."
           FontSize="14"
           Grid.Row="1"
           TextColor="White"
           Grid.Column="1"
           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
-                <Label Text="⟁"
+                    <Label Text="⟁"
        FontSize="30"
 VerticalOptions="Center"
        Grid.Row="2"
        TextColor="White"
        Grid.Column="0"
        HorizontalOptions="Center"/>
-                <Label Text="Subtrai a quantidade de símbolos já usados antes deste."
+                    <Label Text="Subtrai a quantidade de símbolos já usados antes deste."
           FontSize="14"
           Grid.Row="2"
           TextColor="White"
           Grid.Column="1"
           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⟢"
+                    <Label Text="⟢"
        FontSize="30"
 VerticalOptions="Center"
        Grid.Row="3"
        TextColor="White"
        Grid.Column="0"
        HorizontalOptions="Center"/>
-                <Label Text="Se o número for par, divide por 2. Se for ímpar, multiplica por 2."
+                    <Label Text="Se o número for par, divide por 2. Se for ímpar, multiplica por 2."
           FontSize="14"
           Grid.Row="3"
           TextColor="White"
           Grid.Column="1"
           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⟠"
+                    <Label Text="⟠"
        FontSize="30"
 VerticalOptions="Center"
        Grid.Row="4"
        TextColor="White"
        Grid.Column="0"
        HorizontalOptions="Center"/>
-                <Label Text="Troca o primeiro e o último dígito. Se só existir um, mantem igual."
+                    <Label Text="Troca o primeiro e o último dígito. Se só existir um, mantem igual."
           FontSize="14"
           Grid.Row="4"
           TextColor="White"
           Grid.Column="1"
           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
-                <Label Text="⌘"
+                    <Label Text="⌘"
        FontSize="30"
 VerticalOptions="Center"
        Grid.Row="5"
        TextColor="White"
        Grid.Column="0"
        HorizontalOptions="Center"/>
-                <Label Text="Inverte a ordem dos dígitos."
+                    <Label Text="Inverte a ordem dos dígitos."
           FontSize="14"
           Grid.Row="5"
           TextColor="White"
           Grid.Column="1"
           HorizontalOptions="Start"/>
-                <BoxView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
-                <Label Text="⌖"
+                    <Label Text="⌖"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="6"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Multiplica pelo número total de símbolos diferentes presentes na sequência."
+                    <Label Text="Multiplica pelo número total de símbolos diferentes presentes na sequência."
    FontSize="14"
    Grid.Row="6"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⧖"
+                    <Label Text="⧖"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="7"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Se o número for maior que 20, subtrai 7. Se for menor ou igual, soma 5."
+                    <Label Text="Se o número for maior que 20, subtrai 7. Se for menor ou igual, soma 5."
    FontSize="14"
    Grid.Row="7"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⌭"
+                    <Label Text="⌭"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="8"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Repete a última operação novamente."
+                    <Label Text="Repete a última operação novamente."
    FontSize="14"
    Grid.Row="8"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⥀"
+                    <Label Text="⥀"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="9"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Anula a operação anterior (executa a operação anterior ao contrário)."
+                    <Label Text="Anula a operação anterior (executa a operação anterior ao contrário)."
    FontSize="14"
    Grid.Row="9"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⟲"
+                    <Label Text="⟲"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="10"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Roda os dígitos para a esquerda. Ex: 123 → 231"
+                    <Label Text="Roda os dígitos para a esquerda. Ex: 123 → 231"
    FontSize="14"
    Grid.Row="10"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⟴"
+                    <Label Text="⟴"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="11"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Soma todos os dígitos do número atual."
+                    <Label Text="Soma todos os dígitos do número atual."
    FontSize="14"
    Grid.Row="11"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
+                    <BoxView Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
 
-                <Label Text="⧗"
+                    <Label Text="⧗"
 FontSize="30"
 VerticalOptions="Center"
 Grid.Row="12"
 TextColor="White"
 Grid.Column="0"
 HorizontalOptions="Center"/>
-                <Label Text="Se for o último símbolo da sequência, multiplica o resultado por 3. Caso contrário, não faz nada."
+                    <Label Text="Se for o último símbolo da sequência, multiplica o resultado por 3. Caso contrário, não faz nada."
    FontSize="14"
    Grid.Row="12"
    TextColor="White"
    Grid.Column="1"
    HorizontalOptions="Start"/>
-                <BoxView Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
-                
-            </Grid>
+                    <BoxView Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="1" BackgroundColor="#8AF3FE" VerticalOptions="End"/>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid x:Name="sem_net"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+        <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+        <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="15">
+
+                <Label Text="LIGAÇÃO PERDIDA!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                <Label
+    Text="Verifica a tua conexão à internet!"
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+    <Grid x:Name="parceiro_sem_net"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+        <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+        <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="15">
+
+                <Label Text="LIGAÇÃO DO GUIA PERDIDA!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                <Label
+    Text="Serás redirecionado para a página inicial!"
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+    </Grid>
 </ContentPage>

@@ -524,6 +524,47 @@ VerticalOptions="Center">
                     </VerticalStackLayout>
                 </Border>
             </Grid>
+
+
+
+            <Grid x:Name="sem_net"
+      BackgroundColor="#99000000"
+    IsVisible="False">
+
+                <Grid ColumnDefinitions="*,5*, *"
+          RowDefinitions="*,5*, *"/>
+                <Border
+BackgroundColor="#B3000105"
+Grid.Column="1"
+Grid.Row="1"
+Stroke="#8AF3FE"
+StrokeThickness="2"
+Padding="20"
+HorizontalOptions="Center"
+VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label Text="LIGAÇÃO PERDIDA!"
+   FontSize="20"
+   FontAttributes="Bold"
+   TextColor="#8AF3FE"
+   FontFamily="Archive"
+   HorizontalTextAlignment="Center"/>
+                        <Label
+    Text="Verifica a tua conexão à internet!"
+    FontSize="16"
+    Grid.Column="0"
+    TextColor="White"
+    Padding="20"
+    HorizontalTextAlignment="Center"
+    VerticalOptions="Center"
+    HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
         </Grid>
     </ScrollView>
 

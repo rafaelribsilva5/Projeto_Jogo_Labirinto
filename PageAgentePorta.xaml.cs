@@ -19,11 +19,44 @@ public partial class PageAgentePorta : ContentPage
         DeviceDisplay.Current.KeepScreenOn = true;
         codigo = codigoo;
         _supabaseInitializationTask = InicializarSupabaseAsync();
+        Connectivity.Current.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
     protected override void OnAppearing()
     {
         base.OnAppearing();
         criar_sequencia();
+    }
+
+    private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess != NetworkAccess.Internet)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    sem_net.IsVisible = true;
+                    await Task.Delay(10000);
+                    if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                    {
+                        Application.Current.MainPage = new NavigationPage(new MainPage());
+                    }
+                    else
+                    {
+                        sem_net.IsVisible = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
+            });
+        }
+        if (e.NetworkAccess == NetworkAccess.Internet)
+        {
+            sem_net.IsVisible = false;
+            _supabaseInitializationTask = InicializarSupabaseAsync();
+        }
     }
 
     private async Task InicializarSupabaseAsync()
@@ -263,5 +296,11 @@ public partial class PageAgentePorta : ContentPage
     protected override bool OnBackButtonPressed()
     {
         return true;
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        Connectivity.Current.ConnectivityChanged -= Connectivity_ConnectivityChanged;
     }
 }
